@@ -46,12 +46,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        setContentView(R.layout.content_layout_id);
-
-
     }
-
-
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
