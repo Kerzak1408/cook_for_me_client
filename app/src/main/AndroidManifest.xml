@@ -36,7 +36,7 @@
         </activity>
         <activity
             android:name="com.example.kerzak.cook4me.LoginActivity"
-            android:label="@string/title_activity_login">
+            android:label="Cook4Me">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
