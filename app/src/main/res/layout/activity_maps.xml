@@ -20,16 +20,16 @@ android:layout_height="match_parent">
         android:id="@+id/cookButton"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="37dp"
-        android:layout_marginLeft="41dp"
-        android:layout_marginStart="41dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginLeft="26dp"
+        android:layout_marginStart="26dp"
         android:adjustViewBounds="true"
         android:scaleType="fitCenter"
         android:padding="0dp"
-        app:srcCompat="@drawable/cook_hat" />
+        app:srcCompat="@drawable/cook_hat"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
 
 </RelativeLayout>

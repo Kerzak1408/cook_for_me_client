@@ -26,6 +26,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -55,9 +56,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public Marker whereAmI;
 
     private GoogleApiClient mGoogleApiClient;
-    private Location mLocation;
+    private Location mLocation = null;
     private LocationManager mLocationManager;
     private LocationRequest mLocationRequest;
+
+    // For switching between cook and eat modes.
+    private ImageButton cookButton;
+
+    private boolean cookMode = false;
+
+    public  boolean isInCookMode() {
+        return cookMode;
+    }
+
+    public void switchCookMode() {
+        cookMode = !cookMode;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +90,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mLocationManager = (LocationManager)this.getSystemService(Context.LOCATION_SERVICE);
 
+        cookButton = (ImageButton) findViewById(R.id.cookButton);
+        cookButton.setOnClickListener(new CookButtonListener(this));
+        cookButton.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -156,13 +173,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onLocationChanged(Location location) {
 
-        String msg = "Updated Location: " +
-                Double.toString(location.getLatitude()) + "," +
-                Double.toString(location.getLongitude());
+        mLocation = location;
         // You can now create a LatLng Object for use with maps
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,
-                11));
+                12));
     }
 
     private boolean checkLocation() {
@@ -201,7 +216,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
         mMap = googleMap;
+        cookButton.setVisibility(View.VISIBLE);
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -215,6 +232,28 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //respond to menu item selection
         return true;
+    }
+
+    public void loadCookMode() {
+        if (mLocation != null ) {
+            LatLng latLng = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
+            cookButton.setImageResource(R.drawable.eat);
+            whereAmI=mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(
+                    BitmapDescriptorFactory.HUE_GREEN)));
+
+        }
+
+
+    }
+
+    public void loadEatMode() {
+        if (mLocation != null ) {
+            LatLng latLng = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
+            cookButton.setImageResource(R.drawable.cook_hat);
+            whereAmI.remove();
+        }
     }
 
 }
