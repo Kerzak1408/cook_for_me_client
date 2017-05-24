@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="math.unipd.it.mp.iamhere">
+    package="com.example.kerzak.cook4me">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -30,12 +30,10 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name="com.example.kerzak.cook4me.MapsActivity"
-            android:label="@string/title_activity_maps">
-
-        </activity>
+            android:name="com.example.kerzak.cook4me.Activities.MapsActivity"
+            android:label="@string/title_activity_maps" />
         <activity
-            android:name="com.example.kerzak.cook4me.LoginActivity"
+            android:name="com.example.kerzak.cook4me.Activities.LoginActivity"
             android:label="Cook4Me">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -43,6 +41,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="com.example.kerzak.cook4me.Activities.CookingInfoActivity"></activity>
     </application>
 
 </manifest>

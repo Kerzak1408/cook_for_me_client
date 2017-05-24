@@ -1,6 +1,8 @@
-package com.example.kerzak.cook4me;
+package com.example.kerzak.cook4me.Listeners;
 
 import android.view.View;
+
+import com.example.kerzak.cook4me.Activities.MapsActivity;
 
 /**
  * Created by Kerzak on 23-May-17.

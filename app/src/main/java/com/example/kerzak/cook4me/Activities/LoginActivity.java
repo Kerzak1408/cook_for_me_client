@@ -1,4 +1,4 @@
-package com.example.kerzak.cook4me;
+package com.example.kerzak.cook4me.Activities;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -46,7 +46,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import math.unipd.it.mp.iamhere.R;
+import com.example.kerzak.cook4me.R;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
