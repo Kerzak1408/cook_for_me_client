@@ -9,6 +9,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 
 import com.example.kerzak.cook4me.Listeners.DatePickerListener;
+import com.example.kerzak.cook4me.Listeners.TextMaxLengthListener;
 import com.example.kerzak.cook4me.Listeners.TimePickerListener;
 import com.example.kerzak.cook4me.R;
 
@@ -21,6 +22,10 @@ public class CookingInfoActivity extends AppCompatActivity {
     EditText datePickerInput;
     EditText timePickerInput2;
     EditText datePickerInput2;
+    EditText portionsCountInput;
+    EditText foodNameInput;
+    EditText priceInput;
+    EditText notesInput;
     Button cookConfirm;
     Button cancelButton;
 
@@ -33,7 +38,30 @@ public class CookingInfoActivity extends AppCompatActivity {
         initializeCookConfirmButton();
         initializeDatePickers();
         initializeCancelButton();
+        initializePortionsCountInput();
+        initializeFoodNameInput();
+        initializePriceInput();
+        initializeNotesInput();
+    }
 
+    private void initializeNotesInput() {
+        notesInput = (EditText) findViewById(R.id.notesInput);
+        notesInput.addTextChangedListener(new TextMaxLengthListener(1000));
+    }
+
+    private void initializeFoodNameInput() {
+        foodNameInput = (EditText) findViewById(R.id.foodNameInput);
+        foodNameInput.addTextChangedListener(new TextMaxLengthListener(100));
+    }
+
+    private void initializePortionsCountInput() {
+        portionsCountInput = (EditText) findViewById(R.id.portionsCount);
+        portionsCountInput.addTextChangedListener(new TextMaxLengthListener(4));
+    }
+
+    private void initializePriceInput(){
+        priceInput = (EditText) findViewById(R.id.priceInput);
+        priceInput.addTextChangedListener(new TextMaxLengthListener(8));
     }
 
     private void initializeCancelButton() {
@@ -61,6 +89,8 @@ public class CookingInfoActivity extends AppCompatActivity {
                 }
         );
     }
+
+
 
     private void initializeCurrencySpinner() {
 
