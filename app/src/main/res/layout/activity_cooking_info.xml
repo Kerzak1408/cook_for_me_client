@@ -31,19 +31,17 @@
             android:id="@+id/textView6"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Category"
+            android:text="Categories"
             android:textSize="24dp"
             android:textStyle="bold" />
 
-        <Spinner
-            android:id="@+id/spinner"
+
+        <EditText
+            android:id="@+id/categoriesInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:entries="@array/category_array"
-            android:prompt="@string/category_prompt"
-            android:spinnerMode="dropdown"
-            android:layout_weight="0.15" />
-        />
+            android:focusable="false"
+            android:hint="Click to select categories." />
 
         <TextView
             android:id="@+id/textView4"

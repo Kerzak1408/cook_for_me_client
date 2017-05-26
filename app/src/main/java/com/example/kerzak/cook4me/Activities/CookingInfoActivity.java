@@ -1,5 +1,7 @@
 package com.example.kerzak.cook4me.Activities;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -8,6 +10,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 
+import com.example.kerzak.cook4me.Enums.FoodCategories;
 import com.example.kerzak.cook4me.Listeners.DatePickerListener;
 import com.example.kerzak.cook4me.Listeners.TextMaxLengthListener;
 import com.example.kerzak.cook4me.Listeners.TimePickerListener;
@@ -26,6 +29,7 @@ public class CookingInfoActivity extends AppCompatActivity {
     EditText foodNameInput;
     EditText priceInput;
     EditText notesInput;
+    EditText categoriesInput;
     Button cookConfirm;
     Button cancelButton;
 
@@ -42,6 +46,50 @@ public class CookingInfoActivity extends AppCompatActivity {
         initializeFoodNameInput();
         initializePriceInput();
         initializeNotesInput();
+        initializeCategories();
+    }
+
+    private void initializeCategories() {
+
+        categoriesInput = (EditText) findViewById(R.id.categoriesInput);
+        categoriesInput.setOnClickListener(
+                new View.OnClickListener() {
+                    final CharSequence[] items = FoodCategories.getNames();
+                    final boolean[] marked = new boolean[items.length];
+                    @Override
+                    public void onClick(View v) {
+
+                        AlertDialog.Builder builder = new AlertDialog.Builder(CookingInfoActivity.this);
+                        builder.setMultiChoiceItems(items, marked, new DialogInterface.OnMultiChoiceClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+
+                            }
+                        });
+                        builder.setTitle("Categories");
+                        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                categoriesInput.setText("");
+                                for (int i = 0; i < marked.length; i++) {
+                                    if (marked[i]) {
+                                        String prev = categoriesInput.getText().toString();
+                                        if (prev.isEmpty()) {
+                                            categoriesInput.setText(items[i]);
+                                        } else {
+                                            categoriesInput.setText(prev + ", "+ items[i]);
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                        AlertDialog alert = builder.create();
+                        alert.show();
+                    }
+                }
+        );
+
+
     }
 
     private void initializeNotesInput() {
