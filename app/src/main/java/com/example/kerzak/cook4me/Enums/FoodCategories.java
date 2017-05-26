@@ -7,7 +7,7 @@ import java.util.Arrays;
  */
 
 public enum FoodCategories {
-    Pasta, Chicken, Beef, Lamb, Pork, Salad;
+    Pasta, Chicken, Beef, Lamb, Pork, Salad, Fish;
 
     public static String[] getNames() {
             return Arrays.toString(FoodCategories.values()).replaceAll("^.|.$", "").split(", ");

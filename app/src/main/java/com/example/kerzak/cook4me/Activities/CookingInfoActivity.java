@@ -15,6 +15,7 @@ import com.example.kerzak.cook4me.Listeners.DatePickerListener;
 import com.example.kerzak.cook4me.Listeners.TextMaxLengthListener;
 import com.example.kerzak.cook4me.Listeners.TimePickerListener;
 import com.example.kerzak.cook4me.R;
+import com.example.kerzak.cook4me.WebSockets.CookingData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,12 +95,12 @@ public class CookingInfoActivity extends AppCompatActivity {
 
     private void initializeNotesInput() {
         notesInput = (EditText) findViewById(R.id.notesInput);
-        notesInput.addTextChangedListener(new TextMaxLengthListener(1000));
+        notesInput.addTextChangedListener(new TextMaxLengthListener(200));
     }
 
     private void initializeFoodNameInput() {
         foodNameInput = (EditText) findViewById(R.id.foodNameInput);
-        foodNameInput.addTextChangedListener(new TextMaxLengthListener(100));
+        foodNameInput.addTextChangedListener(new TextMaxLengthListener(40));
     }
 
     private void initializePortionsCountInput() {
@@ -132,7 +133,7 @@ public class CookingInfoActivity extends AppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
-
+                        CookingData cookingData = new CookingData();
                     }
                 }
         );
