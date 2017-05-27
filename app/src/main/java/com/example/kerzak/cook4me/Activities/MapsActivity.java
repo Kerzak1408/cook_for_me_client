@@ -38,6 +38,16 @@ import com.example.kerzak.cook4me.R;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
+    /**
+     * The echo server on websocket.org.
+     */
+    private static final String SERVER = "ws://echo.websocket.org";
+
+    /**
+     * The timeout value in milliseconds for socket connection.
+     */
+    private static final int TIMEOUT = 5000;
+
     private GoogleMap mMap;
 
     public Marker whereAmI;
@@ -46,6 +56,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Location mLocation = null;
     private LocationManager mLocationManager;
     private LocationRequest mLocationRequest;
+
+    com.example.kerzak.cook4me.WebSockets.Client client;
+
 
     // For switching between cook and eat modes.
     private ImageButton cookButton;
@@ -80,7 +93,67 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         cookButton = (ImageButton) findViewById(R.id.cookButton);
         cookButton.setOnClickListener(new CookButtonListener(this));
         cookButton.setVisibility(View.INVISIBLE);
+//
+//        mStompClient = Stomp.over(WebSocket.class, "ws://192.168.179.94:8090/example-endpoint/websocket");
+//        mStompClient.connect();
+//
+//        mStompClient.topic("/topic/greetings").subscribe(topicMessage -> {
+//            LatLng latLng = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
+//            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
+//            cookButton.setImageResource(R.drawable.eat);
+//            whereAmI=mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(
+//                    BitmapDescriptorFactory.HUE_GREEN)));
+//        });
+//
+//
+//        mStompClient.send("/topic/hello-msg-mapping", "My first STOMP message!").subscribe();
+//
+//        // ...
+//
+//        mStompClient.disconnect();
+
+//------------------
+//        WebsocketClientExample myClient = new WebsocketClientExample();
+//        myClient.connect_to_server();
+//        myClient.sendMessage("aaa");
+//        ---------------------
+
+//        Client c = null;
+//        try {
+//            c = new Client("ws://192.168.179.94",8090,"","");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } catch (LoginException e) {
+//            e.printStackTrace();
+//        }
+//        c.subscribe("/topic/showResult", new Listener() {
+//            @Override
+//            public void message(Map map, String s) {
+//
+//            }
+//        });
+//        c.send("/add","message fff");
+//----------------------
+//        HelloClient helloClient = new HelloClient();
+//        ListenableFuture<StompSession> listenableFuture= helloClient.connect();
+//        try {
+//            helloClient.sendHello(listenableFuture.get());
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        } catch (ExecutionException e) {
+//            e.printStackTrace();
+//        }
+
+
+        client = new com.example.kerzak.cook4me.WebSockets.Client();
+        Thread newThread = new Thread(client);
+        newThread.start();
+
+
+
     }
+
+
 
     @Override
     public void onConnected(Bundle bundle) {
@@ -230,6 +303,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     BitmapDescriptorFactory.HUE_GREEN)));
 //            finish();
             Intent myIntent = new Intent(MapsActivity.this,CookingInfoActivity.class);
+
             MapsActivity.this.startActivity(myIntent);
         }
 
