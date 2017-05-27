@@ -116,7 +116,7 @@
             android:inputType="number" />
 
         <Switch
-            android:id="@+id/switch1"
+            android:id="@+id/takeAwaySwitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Take-Away only" />
