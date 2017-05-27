@@ -110,12 +110,12 @@ public class CookingInfoActivity extends AppCompatActivity {
 
     private void initializeNotesInput() {
         notesInput = (EditText) findViewById(R.id.notesInput);
-        notesInput.addTextChangedListener(new TextMaxLengthListener(1000));
+        notesInput.addTextChangedListener(new TextMaxLengthListener(200));
     }
 
     private void initializeFoodNameInput() {
         foodNameInput = (EditText) findViewById(R.id.foodNameInput);
-        foodNameInput.addTextChangedListener(new TextMaxLengthListener(100));
+        foodNameInput.addTextChangedListener(new TextMaxLengthListener(40));
     }
 
     private void initializePortionsCountInput() {
@@ -148,6 +148,7 @@ public class CookingInfoActivity extends AppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
+
                         //here
                         boolean everythingOK = true;
                         if ((portionsCountInput.getText().toString()).equals("")) {
@@ -228,6 +229,8 @@ public class CookingInfoActivity extends AppCompatActivity {
                                     Integer.parseInt(portionsCountInput.getText().toString()), takeAway,
                                     Integer.parseInt(priceInput.getText().toString()), notesInput.getText().toString(), currency);
                         }
+
+                        CookingData cookingData = new CookingData();
                     }
                 }
         );
