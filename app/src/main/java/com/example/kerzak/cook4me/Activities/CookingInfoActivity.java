@@ -1,3 +1,4 @@
+
 package com.example.kerzak.cook4me.Activities;
 
 import android.app.AlertDialog;
@@ -9,15 +10,21 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Switch;
 
 import com.example.kerzak.cook4me.Enums.FoodCategories;
 import com.example.kerzak.cook4me.Listeners.DatePickerListener;
 import com.example.kerzak.cook4me.Listeners.TextMaxLengthListener;
 import com.example.kerzak.cook4me.Listeners.TimePickerListener;
 import com.example.kerzak.cook4me.R;
+import com.example.kerzak.cook4me.WebSockets.CookingData;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class CookingInfoActivity extends AppCompatActivity {
 
@@ -32,10 +39,12 @@ public class CookingInfoActivity extends AppCompatActivity {
     EditText categoriesInput;
     Button cookConfirm;
     Button cancelButton;
+    HashMap<CharSequence,Boolean> selectedCategories;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_cooking_info);
         initializeTimePickers();
         initializeCurrencySpinner();
@@ -51,6 +60,12 @@ public class CookingInfoActivity extends AppCompatActivity {
 
     private void initializeCategories() {
 
+        selectedCategories = new HashMap<>();
+        CharSequence[] allCategories = FoodCategories.getNames();
+        for (CharSequence category : allCategories) {
+            selectedCategories.put(category, false);
+        }
+
         categoriesInput = (EditText) findViewById(R.id.categoriesInput);
         categoriesInput.setOnClickListener(
                 new View.OnClickListener() {
@@ -63,7 +78,8 @@ public class CookingInfoActivity extends AppCompatActivity {
                         builder.setMultiChoiceItems(items, marked, new DialogInterface.OnMultiChoiceClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-
+                                CharSequence selectedCategory = items[which];
+                                selectedCategories.put(selectedCategory, isChecked);
                             }
                         });
                         builder.setTitle("Categories");
@@ -132,7 +148,86 @@ public class CookingInfoActivity extends AppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
+                        //here
+                        boolean everythingOK = true;
+                        if ((portionsCountInput.getText().toString()).equals("")) {
+                            everythingOK = false;
+                            portionsCountInput.setError(getString(R.string.error_field_required));
+                        }
+                        if ((foodNameInput.getText().toString()).equals("")) {
+                            everythingOK = false;
+                            foodNameInput.setError(getString(R.string.error_field_required));
+                        }
+                        if ((priceInput.getText().toString()).equals("")) {
+                            everythingOK = false;
+                            priceInput.setError(getString(R.string.error_field_required));
+                        }
+                        int[] timeFrom = new int[5];
+                        int[] timeTo = new int[5];
+                        String[] temp = (datePickerInput.getText().toString()).split("\\.");
+                        for (int i=0; i<3; i++)
+                            timeFrom[i] = Integer.parseInt(temp[i]);
+                        temp = (timePickerInput.getText().toString()).split(":");
+                        for (int i=0; i<2; i++)
+                            timeFrom[i + 3] = Integer.parseInt(temp[i]);
+                        temp = (datePickerInput2.getText().toString()).split("\\.");
+                        for (int i=0; i<3; i++)
+                            timeTo[i] = Integer.parseInt(temp[i]);
+                        temp = (timePickerInput2.getText().toString()).split(":");
+                        for (int i=0; i<2; i++)
+                            timeTo[i + 3] = Integer.parseInt(temp[i]);
 
+                        datePickerInput2.setError(null);
+                        timePickerInput2.setError(null);
+                        if (timeFrom[2] > timeTo[2]) {
+                            datePickerInput2.setError("Invalid date");
+                            everythingOK = false;
+                        }
+                        else if (timeTo[2] == timeFrom[2]) {
+                            if (timeFrom[1] > timeTo[1]) {
+                                datePickerInput2.setError("Invalid date");
+                                everythingOK = false;
+                            }
+                            else if (timeFrom[1] == timeTo[1]) {
+                                if (timeFrom[0] > timeTo[0]) {
+                                    datePickerInput2.setError("Invalid date");
+                                    everythingOK = false;
+                                }
+                                else if (timeFrom[0] == timeTo[0]) {
+                                    if (timeFrom[3] > timeTo[3]) {
+                                        timePickerInput2.setError("Invalid time");
+                                        everythingOK = false;
+                                    }
+                                    else if (timeFrom[3] == timeTo[3]) {
+                                        if (timeFrom[4] >= timeTo[4]) {
+                                            timePickerInput2.setError("Invalid time");
+                                            everythingOK = false;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (everythingOK) {
+                            List<String> categories = new LinkedList<String>();
+                            for(Map.Entry<CharSequence,Boolean> cat : selectedCategories.entrySet()) {
+                                String key = cat.getKey().toString();
+                                Boolean value = cat.getValue();
+                                if (value)
+                                    categories.add(key);
+                            }
+
+                            //TODO ID kuchara
+                            Switch takeAwaySwitch = (Switch) findViewById(R.id.takeAwaySwitch);
+                            boolean takeAway = takeAwaySwitch.isChecked();
+                            Spinner currencySpinner = (Spinner) findViewById(R.id.currencySpinner);
+                            String currency = currencySpinner.getSelectedItem().toString();
+                            //String currency = currencySpinner
+                            CookingData thisCookingData = new CookingData("", foodNameInput.getText().toString(), categories,
+                                    timeFrom[0],timeFrom[1],timeFrom[2], timeFrom[3], timeFrom[4],
+                                    timeTo[0],timeTo[1],timeTo[2],timeTo[3],timeTo[4],
+                                    Integer.parseInt(portionsCountInput.getText().toString()), takeAway,
+                                    Integer.parseInt(priceInput.getText().toString()), notesInput.getText().toString(), currency);
+                        }
                     }
                 }
         );
