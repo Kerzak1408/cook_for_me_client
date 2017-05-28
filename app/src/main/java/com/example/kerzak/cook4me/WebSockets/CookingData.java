@@ -1,12 +1,13 @@
 package com.example.kerzak.cook4me.WebSockets;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Created by Kerzak on 24-May-17.
  */
 
-public class CookingData {
+public class CookingData implements Serializable {
     private String nameOfCook;
     private String name;
     private List<String> categories;

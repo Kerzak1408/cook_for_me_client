@@ -3,8 +3,10 @@ package com.example.kerzak.cook4me.Activities;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -17,14 +19,26 @@ import com.example.kerzak.cook4me.Listeners.DatePickerListener;
 import com.example.kerzak.cook4me.Listeners.TextMaxLengthListener;
 import com.example.kerzak.cook4me.Listeners.TimePickerListener;
 import com.example.kerzak.cook4me.R;
+import com.example.kerzak.cook4me.WebSockets.Client;
 import com.example.kerzak.cook4me.WebSockets.CookingData;
+import com.example.kerzak.cook4me.WebSockets.SimpleSocketClient;
+import com.google.gson.Gson;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.Inet4Address;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import static android.R.attr.data;
 
 public class CookingInfoActivity extends AppCompatActivity {
 
@@ -40,6 +54,7 @@ public class CookingInfoActivity extends AppCompatActivity {
     Button cookConfirm;
     Button cancelButton;
     HashMap<CharSequence,Boolean> selectedCategories;
+    public static CookingData thisCookingData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -223,17 +238,26 @@ public class CookingInfoActivity extends AppCompatActivity {
                             Spinner currencySpinner = (Spinner) findViewById(R.id.currencySpinner);
                             String currency = currencySpinner.getSelectedItem().toString();
                             //String currency = currencySpinner
-                            CookingData thisCookingData = new CookingData("", foodNameInput.getText().toString(), categories,
+                            CookingInfoActivity.thisCookingData = new CookingData("", foodNameInput.getText().toString(), categories,
                                     timeFrom[0],timeFrom[1],timeFrom[2], timeFrom[3], timeFrom[4],
                                     timeTo[0],timeTo[1],timeTo[2],timeTo[3],timeTo[4],
                                     Integer.parseInt(portionsCountInput.getText().toString()), takeAway,
                                     Integer.parseInt(priceInput.getText().toString()), notesInput.getText().toString(), currency);
+
+                            Gson gson = new Gson();
+                            String json = gson.toJson(CookingInfoActivity.thisCookingData );
+
+                            Intent myIntent = new Intent(CookingInfoActivity.this,MapsActivity.class);
+                            myIntent.putExtra("json",json);
+                            finish();
+                            CookingInfoActivity.this.startActivity(myIntent);
+
                         }
 
-                        CookingData cookingData = new CookingData();
                     }
                 }
         );
+
     }
 
 

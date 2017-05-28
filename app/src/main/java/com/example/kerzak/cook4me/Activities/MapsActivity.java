@@ -9,6 +9,8 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -20,6 +22,7 @@ import android.view.View;
 import android.widget.ImageButton;
 
 import com.example.kerzak.cook4me.Listeners.CookButtonListener;
+import com.example.kerzak.cook4me.WebSockets.CookingData;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
@@ -34,6 +37,16 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import com.example.kerzak.cook4me.R;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
@@ -57,11 +70,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationManager mLocationManager;
     private LocationRequest mLocationRequest;
 
+    private List<CookingData> cookingDataList;
+
     com.example.kerzak.cook4me.WebSockets.Client client;
 
 
     // For switching between cook and eat modes.
     private ImageButton cookButton;
+    String json;
 
     private boolean cookMode = false;
 
@@ -76,6 +92,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        cookingDataList = new ArrayList<>();
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -93,67 +110,56 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         cookButton = (ImageButton) findViewById(R.id.cookButton);
         cookButton.setOnClickListener(new CookButtonListener(this));
         cookButton.setVisibility(View.INVISIBLE);
-//
-//        mStompClient = Stomp.over(WebSocket.class, "ws://192.168.179.94:8090/example-endpoint/websocket");
-//        mStompClient.connect();
-//
-//        mStompClient.topic("/topic/greetings").subscribe(topicMessage -> {
-//            LatLng latLng = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
-//            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
-//            cookButton.setImageResource(R.drawable.eat);
-//            whereAmI=mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(
-//                    BitmapDescriptorFactory.HUE_GREEN)));
-//        });
-//
-//
-//        mStompClient.send("/topic/hello-msg-mapping", "My first STOMP message!").subscribe();
-//
-//        // ...
-//
-//        mStompClient.disconnect();
-
-//------------------
-//        WebsocketClientExample myClient = new WebsocketClientExample();
-//        myClient.connect_to_server();
-//        myClient.sendMessage("aaa");
-//        ---------------------
-
-//        Client c = null;
-//        try {
-//            c = new Client("ws://192.168.179.94",8090,"","");
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } catch (LoginException e) {
-//            e.printStackTrace();
-//        }
-//        c.subscribe("/topic/showResult", new Listener() {
-//            @Override
-//            public void message(Map map, String s) {
-//
-//            }
-//        });
-//        c.send("/add","message fff");
-//----------------------
-//        HelloClient helloClient = new HelloClient();
-//        ListenableFuture<StompSession> listenableFuture= helloClient.connect();
-//        try {
-//            helloClient.sendHello(listenableFuture.get());
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        } catch (ExecutionException e) {
-//            e.printStackTrace();
-//        }
-
-
-        client = new com.example.kerzak.cook4me.WebSockets.Client();
-        Thread newThread = new Thread(client);
-        newThread.start();
-
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            json = getIntent().getStringExtra("json");
+            cookLogic();
+        }
 
 
     }
 
+    private void cookLogic() {
+        // TODO Auto-generated method stub
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    // Create Socket instance
+                    Socket socket = new Socket("192.168.179.94", 6666);
 
+                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+//                    bw.write("Ciao server\n");
+//                    bw.flush();
+                    bw.write(json);
+                    bw.flush();
+                    // Get input buffer
+                    BufferedReader br = new BufferedReader(
+                            new InputStreamReader(socket.getInputStream()));
+                    String line = br.readLine();
+                    br.close();
+                } catch (UnknownHostException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                handler.sendEmptyMessage(0);
+            }
+        }.start();
+    }
+
+
+    // Define Handler object
+    private Handler handler = new Handler() {
+        @Override
+        // When there is message, execute this method
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            // Update UI
+        }
+    };
 
     @Override
     public void onConnected(Bundle bundle) {
@@ -301,7 +307,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             cookButton.setImageResource(R.drawable.eat);
             whereAmI=mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(
                     BitmapDescriptorFactory.HUE_GREEN)));
-//            finish();
+            finish();
             Intent myIntent = new Intent(MapsActivity.this,CookingInfoActivity.class);
 
             MapsActivity.this.startActivity(myIntent);
