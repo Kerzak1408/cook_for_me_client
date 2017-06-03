@@ -1,5 +1,7 @@
 package com.example.kerzak.cook4me.WebSockets;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -8,7 +10,7 @@ import java.util.List;
  */
 
 public class CookingData implements Serializable {
-    private String nameOfCook;
+    private String login;
     private String name;
     private List<String> categories;
     private int dayFrom;
@@ -26,11 +28,12 @@ public class CookingData implements Serializable {
     private int price;
     private String notes;
     private String currency;
+    private LatLng location;
 
-    public CookingData(String nameOfCook, String name, List<String> categories, int dayFrom, int monthFrom, int yearFrom,
+    public CookingData(String login, String name, List<String> categories, int dayFrom, int monthFrom, int yearFrom,
                        int hourFrom, int minuteFrom, int dayTo, int monthTo, int yearTo, int hourTo, int minuteTo,
                        int portions, boolean takeAwayOnly, int price, String notes, String currency) {
-        this.nameOfCook = nameOfCook;
+        this.login = login;
         this.name = name;
         this. categories = categories;
         this.dayFrom = dayFrom;
@@ -48,5 +51,21 @@ public class CookingData implements Serializable {
         this.price = price;
         this.notes = notes;
         this.currency = currency;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public  LatLng getLocation() {
+        return this.location;
+    }
+
+    public void setLocation(LatLng location) {
+        this.location = location;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
     }
 }

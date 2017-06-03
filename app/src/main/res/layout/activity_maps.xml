@@ -14,7 +14,7 @@ android:layout_height="match_parent">
         android:layout_height="match_parent"
         android:id="@+id/map"
         tools:context="com.example.kerzak.cook4me.Activities.MapsActivity"
-        android:name="com.google.android.gms.maps.SupportMapFragment"/>
+        android:name="com.google.android.gms.maps.SupportMapFragment" />
 
     <ImageButton
         android:id="@+id/cookButton"
@@ -30,6 +30,78 @@ android:layout_height="match_parent">
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
+
+    <ImageView
+        android:id="@+id/markerImage"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:adjustViewBounds="false"
+        android:visibility="invisible"
+        app:srcCompat="@drawable/green_marker"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:id="@+id/confirmLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/cookButton"
+        android:layout_centerHorizontal="true"
+        android:text="Confirm location"
+        android:visibility="invisible" />
+
+    <TextView
+        android:id="@+id/logger"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:text="Log"
+        android:textSize="18sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="invisible"
+        android:id="@+id/cookingButtonsLayout">
+
+
+        <Button
+            android:id="@+id/cancelCooking"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Cancel cooking" />
+
+        <Button
+            android:id="@+id/editCooking"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Edit cooking" />
+
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/cookingButtonsLayout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="26dp"
+        android:visibility="invisible" />
+
+    <TextView
+        android:id="@+id/progressText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/cookingButtonsLayout"
+        android:layout_centerHorizontal="true"
+        android:text="Users registered for your cooking:"
+        android:visibility="invisible" />
 
 
 </RelativeLayout>

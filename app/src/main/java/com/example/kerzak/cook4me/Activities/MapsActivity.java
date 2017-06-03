@@ -19,7 +19,12 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.example.kerzak.cook4me.Listeners.CookButtonListener;
 import com.example.kerzak.cook4me.WebSockets.CookingData;
@@ -37,6 +42,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import com.example.kerzak.cook4me.R;
+import com.google.gson.Gson;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -64,6 +70,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
 
     public Marker whereAmI;
+    boolean initialized = false;
 
     private GoogleApiClient mGoogleApiClient;
     private Location mLocation = null;
@@ -74,24 +81,53 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     com.example.kerzak.cook4me.WebSockets.Client client;
 
-
+    LinearLayout cookingViewLayout;
+    TextView progressTextView;
+    ProgressBar progressBar;
+    Button confirmLocationButton;
+    private ImageView markerImage;
+    private TextView loggerView;
     // For switching between cook and eat modes.
     private ImageButton cookButton;
-    String json;
+
+    String json = null;
+    String login = null;
+    Gson gson = new Gson();
 
     private boolean cookMode = false;
-
     public  boolean isInCookMode() {
         return cookMode;
     }
 
     public void switchCookMode() {
         cookMode = !cookMode;
+        cookingViewLayout = (LinearLayout) findViewById(R.id.cookingButtonsLayout);
+        progressTextView = (TextView) findViewById(R.id.progressText);
+        progressBar = (ProgressBar)findViewById(R.id.progressBar);
+        if (cookMode) {
+            cookButton.setImageResource(R.drawable.eat);
+        } else {
+            cookButton.setImageResource(R.drawable.cook_hat);
+        }
+        changeCookingButtonsVisibility(cookMode);
+    }
+
+    public void changeCookingButtonsVisibility(boolean visible) {
+        int visibility = visible ? View.VISIBLE : View.INVISIBLE;
+
+        cookingViewLayout = (LinearLayout) findViewById(R.id.cookingButtonsLayout);
+        progressTextView = (TextView) findViewById(R.id.progressText);
+        progressBar = (ProgressBar)findViewById(R.id.progressBar);
+
+        cookingViewLayout.setVisibility(visibility);
+        progressBar.setVisibility(visibility);
+        progressTextView.setVisibility(visibility);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         cookingDataList = new ArrayList<>();
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -111,15 +147,74 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         cookButton.setOnClickListener(new CookButtonListener(this));
         cookButton.setVisibility(View.INVISIBLE);
         Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-            json = getIntent().getStringExtra("json");
-            cookLogic();
+        json = getIntent().getStringExtra("json");
+        login = getIntent().getStringExtra("login");
+        cookMode = false;
+        if (json != null) {
+            switchCookMode();
         }
+        changeCookingButtonsVisibility(false);
+        loggerView = (TextView) findViewById(R.id.logger);
+    }
 
+    private void parseMessageFromServer(String msg) {
 
     }
 
-    private void cookLogic() {
+    private void customerLogic() {
+
+        loggerView.setText("Customer logic");
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    // Create Socket instance
+                    Socket socket = new Socket("192.168.179.94", 6666);
+
+                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+                    // Get input buffer
+                    BufferedReader br = new BufferedReader(
+                            new InputStreamReader(socket.getInputStream()));
+                    String line = "";
+
+                    while ((line = br.readLine()) != null) {
+//                        loggerView.setText(line);
+                        String[] splitMsg = line.split("#");
+                        Gson gson = new Gson();
+
+                        CookingData cookingData = gson.fromJson(splitMsg[1],CookingData.class);
+//                        LatLng cookPosition = cookingData.getLocation();
+//                        Marker newCook = mMap.addMarker(new MarkerOptions().position(cookPosition).icon(BitmapDescriptorFactory.defaultMarker(
+//                                BitmapDescriptorFactory.HUE_ORANGE)));
+                        Message msg = new Message();
+                        msg.obj = cookingData;
+
+                        serverMessageHandler.sendMessage(msg);
+//                        newCook.setVisible(true);
+//                        newCook.setTitle(cookingData.getName());
+                    }
+
+                    br.close();
+                } catch (UnknownHostException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+//                serverMessageHandler.sendEmptyMessage(0);
+            }
+        }.start();
+    }
+
+
+    private void cookLogic(LatLng latLng) {
+
+        final String locationJSON = gson.toJson(latLng);
+        CookingData deserialized = gson.fromJson(json, CookingData.class);
+        deserialized.setLocation(latLng);
+        final String completeJSON = gson.toJson(deserialized);
+
         // TODO Auto-generated method stub
         new Thread() {
             @Override
@@ -131,12 +226,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 //                    bw.write("Ciao server\n");
 //                    bw.flush();
-                    bw.write(json);
+                    bw.write("cook#" + completeJSON);
                     bw.flush();
                     // Get input buffer
                     BufferedReader br = new BufferedReader(
                             new InputStreamReader(socket.getInputStream()));
                     String line = br.readLine();
+                    while ((line = br.readLine()) != null) {
+
+                    }
                     br.close();
                 } catch (UnknownHostException e) {
                     // TODO Auto-generated catch block
@@ -145,19 +243,24 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
-                handler.sendEmptyMessage(0);
+//                serverMessageHandler.sendEmptyMessage(0);
             }
         }.start();
     }
 
 
     // Define Handler object
-    private Handler handler = new Handler() {
+    private Handler serverMessageHandler = new Handler() {
         @Override
         // When there is message, execute this method
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             // Update UI
+            loggerView.setText("IN serverMessageHandler");
+            CookingData data = (CookingData) msg.obj;
+            Marker newMarker = mMap.addMarker(new MarkerOptions().position(data.getLocation()).icon(BitmapDescriptorFactory.defaultMarker(
+                    BitmapDescriptorFactory.HUE_ORANGE)));
+            newMarker.setTitle(data.getName());
         }
     };
 
@@ -182,7 +285,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             startLocationUpdates();
         }
         if (mLocation != null) {
-
             // mLatitudeTextView.setText(String.valueOf(mLocation.getLatitude()));
             //mLongitudeTextView.setText(String.valueOf(mLocation.getLongitude()));
         } else {
@@ -243,7 +345,34 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // You can now create a LatLng Object for use with maps
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,
-                12));
+                15));
+        if (initialized) {
+            return;
+        }
+        initialized = true;
+        if (cookMode) {
+            markerImage = (ImageView) findViewById(R.id.markerImage);
+            markerImage.setVisibility(View.VISIBLE);
+            confirmLocationButton = (Button) findViewById(R.id.confirmLocation);
+            confirmLocationButton.setVisibility(View.VISIBLE);
+            cookButton.setVisibility(View.INVISIBLE);
+            confirmLocationButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    LatLng latLng = mMap.getCameraPosition().target;
+                    whereAmI=mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(
+                            BitmapDescriptorFactory.HUE_GREEN)));
+                    markerImage.setVisibility(View.INVISIBLE);
+                    confirmLocationButton.setVisibility(View.INVISIBLE);
+                    cookButton.setVisibility(View.VISIBLE);
+                    changeCookingButtonsVisibility(true);
+
+                    cookLogic(latLng);
+                }
+            });
+        } else {
+            customerLogic();
+        }
     }
 
     private boolean checkLocation() {
@@ -285,6 +414,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mMap = googleMap;
         cookButton.setVisibility(View.VISIBLE);
+
+
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -301,27 +432,54 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void loadCookMode() {
+//        switchCookMode();
         if (mLocation != null ) {
-            LatLng latLng = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
-            cookButton.setImageResource(R.drawable.eat);
-            whereAmI=mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(
-                    BitmapDescriptorFactory.HUE_GREEN)));
+//            LatLng latLng = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
+//            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
+//            cookButton.setImageResource(R.drawable.eat);
+//            whereAmI=mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(
+//                    BitmapDescriptorFactory.HUE_GREEN)));
             finish();
             Intent myIntent = new Intent(MapsActivity.this,CookingInfoActivity.class);
-
+            myIntent.putExtra("login",login);
             MapsActivity.this.startActivity(myIntent);
         }
 
     }
 
     public void loadEatMode() {
-        if (mLocation != null ) {
-            LatLng latLng = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
-            cookButton.setImageResource(R.drawable.cook_hat);
-            whereAmI.remove();
-        }
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                    {
+                        switchCookMode();
+                        cancelCooking();
+                        customerLogic();
+                    }
+                    break;
+                }
+            }
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Do you really want to quit cook mode? Your cooking session will be canceled. ").setPositiveButton("Yes", dialogClickListener)
+                .setNegativeButton("No", dialogClickListener).show();
+
+//        if (mLocation != null ) {
+//            LatLng latLng = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
+//            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
+//            cookButton.setImageResource(R.drawable.cook_hat);
+//            whereAmI.remove();
+//        }
+
     }
+
+    private void cancelCooking() {
+        mMap.clear();
+
+    }
+
 
 }

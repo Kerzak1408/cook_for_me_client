@@ -24,7 +24,6 @@ public class CookButtonListener implements View.OnClickListener {
         } else {
             mapsActivity.loadCookMode();
         }
-        mapsActivity.switchCookMode();
     }
 
 }

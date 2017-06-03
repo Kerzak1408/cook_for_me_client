@@ -55,6 +55,7 @@ public class CookingInfoActivity extends AppCompatActivity {
     Button cancelButton;
     HashMap<CharSequence,Boolean> selectedCategories;
     public static CookingData thisCookingData;
+    String login = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +72,8 @@ public class CookingInfoActivity extends AppCompatActivity {
         initializePriceInput();
         initializeNotesInput();
         initializeCategories();
+
+        login = getIntent().getStringExtra("login");
     }
 
     private void initializeCategories() {
@@ -150,7 +153,9 @@ public class CookingInfoActivity extends AppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
+                        Intent myIntent = new Intent(CookingInfoActivity.this,MapsActivity.class);
                         finish();
+                        CookingInfoActivity.this.startActivity(myIntent);
                     }
                 }
         );
@@ -224,33 +229,33 @@ public class CookingInfoActivity extends AppCompatActivity {
                             }
                         }
                         if (everythingOK) {
-                            List<String> categories = new LinkedList<String>();
-                            for(Map.Entry<CharSequence,Boolean> cat : selectedCategories.entrySet()) {
-                                String key = cat.getKey().toString();
-                                Boolean value = cat.getValue();
-                                if (value)
-                                    categories.add(key);
-                            }
+                                List<String> categories = new LinkedList<String>();
+                                for(Map.Entry<CharSequence,Boolean> cat : selectedCategories.entrySet()) {
+                                    String key = cat.getKey().toString();
+                                    Boolean value = cat.getValue();
+                                    if (value)
+                                        categories.add(key);
+                                }
 
-                            //TODO ID kuchara
-                            Switch takeAwaySwitch = (Switch) findViewById(R.id.takeAwaySwitch);
-                            boolean takeAway = takeAwaySwitch.isChecked();
-                            Spinner currencySpinner = (Spinner) findViewById(R.id.currencySpinner);
-                            String currency = currencySpinner.getSelectedItem().toString();
-                            //String currency = currencySpinner
-                            CookingInfoActivity.thisCookingData = new CookingData("", foodNameInput.getText().toString(), categories,
-                                    timeFrom[0],timeFrom[1],timeFrom[2], timeFrom[3], timeFrom[4],
-                                    timeTo[0],timeTo[1],timeTo[2],timeTo[3],timeTo[4],
-                                    Integer.parseInt(portionsCountInput.getText().toString()), takeAway,
-                                    Integer.parseInt(priceInput.getText().toString()), notesInput.getText().toString(), currency);
+                                //TODO ID kuchara
+                                Switch takeAwaySwitch = (Switch) findViewById(R.id.takeAwaySwitch);
+                                boolean takeAway = takeAwaySwitch.isChecked();
+                                Spinner currencySpinner = (Spinner) findViewById(R.id.currencySpinner);
+                                String currency = currencySpinner.getSelectedItem().toString();
+                                //String currency = currencySpinner
+                                CookingInfoActivity.thisCookingData = new CookingData("", foodNameInput.getText().toString(), categories,
+                                        timeFrom[0],timeFrom[1],timeFrom[2], timeFrom[3], timeFrom[4],
+                                        timeTo[0],timeTo[1],timeTo[2],timeTo[3],timeTo[4],
+                                        Integer.parseInt(portionsCountInput.getText().toString()), takeAway,
+                                        Integer.parseInt(priceInput.getText().toString()), notesInput.getText().toString(), currency);
+                                thisCookingData.setLogin(login);
+                                Gson gson = new Gson();
+                                String json = gson.toJson(CookingInfoActivity.thisCookingData );
 
-                            Gson gson = new Gson();
-                            String json = gson.toJson(CookingInfoActivity.thisCookingData );
-
-                            Intent myIntent = new Intent(CookingInfoActivity.this,MapsActivity.class);
-                            myIntent.putExtra("json",json);
-                            finish();
-                            CookingInfoActivity.this.startActivity(myIntent);
+                                Intent myIntent = new Intent(CookingInfoActivity.this,MapsActivity.class);
+                                myIntent.putExtra("json",json);
+                                finish();
+                                CookingInfoActivity.this.startActivity(myIntent);
 
                         }
 

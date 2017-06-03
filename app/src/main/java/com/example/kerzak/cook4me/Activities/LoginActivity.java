@@ -462,6 +462,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 if ("OK".equals(server_response)) {
                     finish();
                     Intent myIntent = new Intent(LoginActivity.this,MapsActivity.class);
+                    myIntent.putExtra("login",mEmail);
                     LoginActivity.this.startActivity(myIntent);
                 } else if ("NEW".equals(server_response)) {
                     mLog.setTextColor(Color.GREEN);
