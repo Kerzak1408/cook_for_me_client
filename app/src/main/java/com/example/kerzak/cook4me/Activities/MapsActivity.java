@@ -27,7 +27,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.kerzak.cook4me.Listeners.CookButtonListener;
+import com.example.kerzak.cook4me.WebSockets.ClientThread;
 import com.example.kerzak.cook4me.WebSockets.CookingData;
+import com.example.kerzak.cook4me.WebSockets.CustomerThread;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
@@ -44,19 +46,14 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.kerzak.cook4me.R;
 import com.google.gson.Gson;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
+    HashMap<String, Marker> cooks;
     /**
      * The echo server on websocket.org.
      */
@@ -85,6 +82,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     TextView progressTextView;
     ProgressBar progressBar;
     Button confirmLocationButton;
+    Button cancelCookingButton;
     private ImageView markerImage;
     private TextView loggerView;
     // For switching between cook and eat modes.
@@ -93,6 +91,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     String json = null;
     String login = null;
     Gson gson = new Gson();
+    CookingData myCookingData;
+
+    private ClientThread clientThread;
+//    private CustomerThread customerThread;
 
     private boolean cookMode = false;
     public  boolean isInCookMode() {
@@ -128,6 +130,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        cooks = new HashMap<>();
         cookingDataList = new ArrayList<>();
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -143,6 +146,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mLocationManager = (LocationManager)this.getSystemService(Context.LOCATION_SERVICE);
 
+        cancelCookingButton = (Button) findViewById(R.id.cancelCooking);
+        cancelCookingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                loadEatMode();
+            }
+        });
+
         cookButton = (ImageButton) findViewById(R.id.cookButton);
         cookButton.setOnClickListener(new CookButtonListener(this));
         cookButton.setVisibility(View.INVISIBLE);
@@ -155,6 +166,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         changeCookingButtonsVisibility(false);
         loggerView = (TextView) findViewById(R.id.logger);
+
+        clientThread = new ClientThread(serverMessageHandler);
+        clientThread.start();
+
+        try {
+            Thread.currentThread().sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private void parseMessageFromServer(String msg) {
@@ -162,49 +182,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void customerLogic() {
-
+        clientThread.writeLine("refresh");
         loggerView.setText("Customer logic");
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    // Create Socket instance
-                    Socket socket = new Socket("192.168.179.94", 6666);
-
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-                    // Get input buffer
-                    BufferedReader br = new BufferedReader(
-                            new InputStreamReader(socket.getInputStream()));
-                    String line = "";
-
-                    while ((line = br.readLine()) != null) {
-//                        loggerView.setText(line);
-                        String[] splitMsg = line.split("#");
-                        Gson gson = new Gson();
-
-                        CookingData cookingData = gson.fromJson(splitMsg[1],CookingData.class);
-//                        LatLng cookPosition = cookingData.getLocation();
-//                        Marker newCook = mMap.addMarker(new MarkerOptions().position(cookPosition).icon(BitmapDescriptorFactory.defaultMarker(
-//                                BitmapDescriptorFactory.HUE_ORANGE)));
-                        Message msg = new Message();
-                        msg.obj = cookingData;
-
-                        serverMessageHandler.sendMessage(msg);
-//                        newCook.setVisible(true);
-//                        newCook.setTitle(cookingData.getName());
-                    }
-
-                    br.close();
-                } catch (UnknownHostException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-//                serverMessageHandler.sendEmptyMessage(0);
-            }
-        }.start();
+//        clientThread.writeLine("cancelCooking");
+        // TODO: tell server to finish cook ?
     }
 
 
@@ -213,54 +194,57 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         final String locationJSON = gson.toJson(latLng);
         CookingData deserialized = gson.fromJson(json, CookingData.class);
         deserialized.setLocation(latLng);
+        myCookingData = deserialized;
         final String completeJSON = gson.toJson(deserialized);
 
         // TODO Auto-generated method stub
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    // Create Socket instance
-                    Socket socket = new Socket("192.168.179.94", 6666);
-
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-//                    bw.write("Ciao server\n");
-//                    bw.flush();
-                    bw.write("cook#" + completeJSON);
-                    bw.flush();
-                    // Get input buffer
-                    BufferedReader br = new BufferedReader(
-                            new InputStreamReader(socket.getInputStream()));
-                    String line = br.readLine();
-                    while ((line = br.readLine()) != null) {
-
-                    }
-                    br.close();
-                } catch (UnknownHostException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-//                serverMessageHandler.sendEmptyMessage(0);
-            }
-        }.start();
+        clientThread.writeLine("cook#" + completeJSON);
     }
 
 
+    private Marker myMarker;
     // Define Handler object
     private Handler serverMessageHandler = new Handler() {
         @Override
         // When there is message, execute this method
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            // Update UI
             loggerView.setText("IN serverMessageHandler");
-            CookingData data = (CookingData) msg.obj;
-            Marker newMarker = mMap.addMarker(new MarkerOptions().position(data.getLocation()).icon(BitmapDescriptorFactory.defaultMarker(
-                    BitmapDescriptorFactory.HUE_ORANGE)));
-            newMarker.setTitle(data.getName());
+            // ADD COOK
+            if (msg.arg1 == 0) {
+
+                CookingData data = (CookingData) msg.obj;
+                if (!cookMode || myCookingData == null || !data.getLogin().equals(myCookingData.getLogin())) {
+                    Marker newMarker = mMap.addMarker(new MarkerOptions().position(data.getLocation()).icon(BitmapDescriptorFactory.defaultMarker(
+                            BitmapDescriptorFactory.HUE_ORANGE)));
+                    newMarker.setTitle(data.getName());
+                    cooks.put(data.getLogin(),newMarker);
+                }
+
+
+            }
+            // REMOVE COOK
+            else if (msg.arg1 == 1) {
+                String login = (String) msg.obj;
+                if (cookMode && myCookingData != null && myCookingData.getLogin().equals(login)) {
+                    myCookingData = null;
+                    if (myMarker != null) myMarker.remove();
+                    loadEatMode();
+                }
+                Marker toBeRemoved = cooks.get(login);
+                loggerView.setText("is marker null:" + (toBeRemoved == null));
+                if (toBeRemoved != null) {
+                    toBeRemoved.remove();
+                    cooks.remove(login);
+                }
+
+
+            }
+            // CLEAR MAP
+            else if (msg.arg1 == 2){
+                mMap.clear();
+            }
+
         }
     };
 
@@ -350,29 +334,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
         initialized = true;
-        if (cookMode) {
-            markerImage = (ImageView) findViewById(R.id.markerImage);
-            markerImage.setVisibility(View.VISIBLE);
-            confirmLocationButton = (Button) findViewById(R.id.confirmLocation);
-            confirmLocationButton.setVisibility(View.VISIBLE);
-            cookButton.setVisibility(View.INVISIBLE);
-            confirmLocationButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    LatLng latLng = mMap.getCameraPosition().target;
-                    whereAmI=mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(
-                            BitmapDescriptorFactory.HUE_GREEN)));
-                    markerImage.setVisibility(View.INVISIBLE);
-                    confirmLocationButton.setVisibility(View.INVISIBLE);
-                    cookButton.setVisibility(View.VISIBLE);
-                    changeCookingButtonsVisibility(true);
 
-                    cookLogic(latLng);
-                }
-            });
-        } else {
-            customerLogic();
-        }
     }
 
     private boolean checkLocation() {
@@ -414,6 +376,32 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mMap = googleMap;
         cookButton.setVisibility(View.VISIBLE);
+
+        if (cookMode) {
+            markerImage = (ImageView) findViewById(R.id.markerImage);
+            markerImage.setVisibility(View.VISIBLE);
+            confirmLocationButton = (Button) findViewById(R.id.confirmLocation);
+            confirmLocationButton.setVisibility(View.VISIBLE);
+            cookButton.setVisibility(View.INVISIBLE);
+            confirmLocationButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mMap.clear();
+                    LatLng latLng = mMap.getCameraPosition().target;
+                    myMarker=mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(
+                            BitmapDescriptorFactory.HUE_GREEN)));
+                    markerImage.setVisibility(View.INVISIBLE);
+                    confirmLocationButton.setVisibility(View.INVISIBLE);
+                    cookButton.setVisibility(View.VISIBLE);
+                    changeCookingButtonsVisibility(true);
+
+                    cookLogic(latLng);
+
+                }
+            });
+        } else {
+            customerLogic();
+        }
 
 
     }
@@ -478,6 +466,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void cancelCooking() {
         mMap.clear();
+        changeCookingButtonsVisibility(false);
+        clientThread.writeLine("cancelCooking");
+    }
+
+    private void refreshCooks() {
 
     }
 

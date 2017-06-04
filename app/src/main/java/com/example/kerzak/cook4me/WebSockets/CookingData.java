@@ -68,4 +68,8 @@ public class CookingData implements Serializable {
     public void setLogin(String login) {
         this.login = login;
     }
+
+    public String getLogin() {
+        return login;
+    }
 }

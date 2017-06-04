@@ -17,44 +17,51 @@ import java.net.UnknownHostException;
  * Created by Kerzak on 03-Jun-17.
  */
 
-public class CustomerThread extends Thread {
+public class ClientThread extends Thread {
 
+//    private String completeJSON;
     private Handler handler;
-    BufferedReader reader;
-    BufferedWriter writer;
+    private BufferedWriter writer;
+    private BufferedReader reader;
+    private Socket socket;
 
-    public CustomerThread(Handler handler) {
+    public ClientThread(Handler handler) {
         this.handler = handler;
     }
 
+
+    @Override
     public void run() {
         try {
             // Create Socket instance
-            Socket socket = new Socket("192.168.179.94", 6666);
+            socket = new Socket("192.168.179.94", 6666);
 
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+//                    bw.write("Ciao server\n");
+//                    bw.flush();
+//            writer.write("cook#" + completeJSON + "\n");
+//            writer.flush();
             // Get input buffer
             reader = new BufferedReader(
                     new InputStreamReader(socket.getInputStream()));
             String line = "";
-
             while ((line = reader.readLine()) != null) {
-//                        loggerView.setText(line);
                 String[] splitMsg = line.split("#");
-                Gson gson = new Gson();
-
-                CookingData cookingData = gson.fromJson(splitMsg[1],CookingData.class);
-//                        LatLng cookPosition = cookingData.getLocation();
-//                        Marker newCook = mMap.addMarker(new MarkerOptions().position(cookPosition).icon(BitmapDescriptorFactory.defaultMarker(
-//                                BitmapDescriptorFactory.HUE_ORANGE)));
                 Message msg = new Message();
-                msg.obj = cookingData;
+                if ("cook".equals(splitMsg[0])){
+                    Gson gson = new Gson();
 
+                    CookingData cookingData = gson.fromJson(splitMsg[1],CookingData.class);
+
+                    msg.obj = cookingData;
+                    msg.arg1 = 0;
+
+                } else if ("remove".equals(splitMsg[0])) {
+                    msg.arg1 = 1;
+                    msg.obj = splitMsg[1];
+                }
                 handler.sendMessage(msg);
-//                        newCook.setVisible(true);
-//                        newCook.setTitle(cookingData.getName());
             }
-
             reader.close();
         } catch (UnknownHostException e) {
             // TODO Auto-generated catch block
@@ -74,5 +81,13 @@ public class CustomerThread extends Thread {
             e.printStackTrace();
         }
 
+    }
+
+    public void closeSocket() {
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
