@@ -30,7 +30,6 @@ import android.widget.TextView;
 import com.example.kerzak.cook4me.Listeners.CookButtonListener;
 import com.example.kerzak.cook4me.WebSockets.ClientThread;
 import com.example.kerzak.cook4me.WebSockets.CookingData;
-import com.example.kerzak.cook4me.WebSockets.CustomerThread;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
@@ -204,7 +203,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void customerLogic() {
-        clientThread.writeLine("refresh");
+        if (clientThread != null) {
+            clientThread.writeLine("refresh");
+        }
         loggerView.setText("Customer logic");
 //        clientThread.writeLine("cancelCooking");
         // TODO: tell server to finish cook ?
@@ -212,10 +213,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     private void cookLogic(LatLng latLng) {
-
-        final String locationJSON = gson.toJson(latLng);
+        json = getIntent().getStringExtra("json");
+        getIntent().getStringExtra("login");
         CookingData deserialized = gson.fromJson(json, CookingData.class);
         deserialized.setLocation(latLng);
+        deserialized.setLogin(login);
         myCookingData = deserialized;
         final String completeJSON = gson.toJson(deserialized);
 
@@ -415,6 +417,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             BitmapDescriptorFactory.HUE_GREEN)));
                     markerImage.setVisibility(View.INVISIBLE);
                     confirmLocationButton.setVisibility(View.INVISIBLE);
+                    cookButton = (ImageButton) findViewById(R.id.cookButton);
                     cookButton.setVisibility(View.VISIBLE);
                     changeCookingButtonsVisibility(true);
 
