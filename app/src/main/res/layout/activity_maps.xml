@@ -103,5 +103,22 @@ android:layout_height="match_parent">
         android:text="Users registered for your cooking:"
         android:visibility="invisible" />
 
+    <Button
+        android:id="@+id/buttonFilters"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toEndOf="@+id/logger"
+        android:layout_toRightOf="@+id/logger"
+        android:text="Filters" />
+
+    <SeekBar
+        android:id="@+id/seekBarPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/cookingButtonsLayout" />
+
 
 </RelativeLayout>

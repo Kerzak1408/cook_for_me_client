@@ -24,6 +24,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.example.kerzak.cook4me.Listeners.CookButtonListener;
@@ -54,9 +55,11 @@ import java.util.List;
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
     HashMap<String, Marker> cooks;
-    /**
-     * The echo server on websocket.org.
-     */
+
+    HashMap<Marker, CookingData> cookingDataMap;
+
+    Button filtersButton;
+    SeekBar seekBarPrice;
     private static final String SERVER = "ws://echo.websocket.org";
 
     /**
@@ -131,6 +134,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
 
         cooks = new HashMap<>();
+        cookingDataMap = new HashMap<>();
         cookingDataList = new ArrayList<>();
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -177,6 +181,24 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    private void filtersButtonClick() {
+        filtersButton = (Button) findViewById(R.id.buttonFilters);
+        seekBarPrice = (SeekBar) findViewById(R.id.seekBarPrice);
+        filtersButton.setOnClickListener(
+                new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        int visibility = View.INVISIBLE;
+                        if (seekBarPrice.getVisibility() == View.INVISIBLE ) {
+                           visibility = View.VISIBLE;
+                        }
+                        seekBarPrice.setVisibility(visibility);
+                    }
+                }
+        );
+    }
+
     private void parseMessageFromServer(String msg) {
 
     }
@@ -219,6 +241,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             BitmapDescriptorFactory.HUE_ORANGE)));
                     newMarker.setTitle(data.getName());
                     cooks.put(data.getLogin(),newMarker);
+                    cookingDataMap.put(newMarker,data);
                 }
 
 
