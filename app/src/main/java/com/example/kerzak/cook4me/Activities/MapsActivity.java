@@ -54,7 +54,7 @@ import java.util.HashMap;
 import java.util.List;
 
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener, GoogleMap.OnMarkerClickListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnMapClickListener {
 
     HashMap<String, Marker> cooks;
 
@@ -88,6 +88,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     ProgressBar progressBar;
     Button confirmLocationButton;
     Button cancelCookingButton;
+    Button registerButton;
     private ImageView markerImage;
     private TextView loggerView;
     // For switching between cook and eat modes.
@@ -97,6 +98,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     String login = null;
     Gson gson = new Gson();
     CookingData myCookingData;
+    Marker selectedMarker;
 
     private ClientThread clientThread;
 //    private CustomerThread customerThread;
@@ -134,6 +136,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        registerButton = (Button) findViewById(R.id.registerButton);
+        // TODO: register listener
 
         cooks = new HashMap<>();
         cookingDataMap = new HashMap<>();
@@ -274,6 +279,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Marker toBeRemoved = cooks.get(login);
                 loggerView.setText("is marker null:" + (toBeRemoved == null));
                 if (toBeRemoved != null) {
+                    if (toBeRemoved ==selectedMarker) {
+                        selectedMarker = null;
+                    }
                     toBeRemoved.remove();
                     cooks.remove(login);
                 }
@@ -415,6 +423,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
 
         mMap = googleMap;
+        mMap.setOnMarkerClickListener(this);
+        mMap.setOnMapClickListener(this);
 
         setInfoAdapter();
         cookButton.setVisibility(View.VISIBLE);
@@ -540,31 +550,29 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onMarkerClick(final Marker marker) {
-
-        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                switch (which){
-                    case DialogInterface.BUTTON_POSITIVE:
-                    {
-                        // TODO: register for the cooking.
-                    }
-                    break;
-                }
+        if (!cookMode) {
+            if (selectedMarker != null) {
+                selectedMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
             }
-        };
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
-//        CookingData data = cookingDataMap.get(marker);
-
-
-
-        builder.setMessage("TEEEST").setPositiveButton("Register", dialogClickListener)
-                .setNegativeButton("Cancel", dialogClickListener);
-        AlertDialog dialog = builder.create();
-        dialog.show();
-
+            selectedMarker = marker;
+            selectedMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+            selectedMarker.showInfoWindow();
+            registerButton = (Button) findViewById(R.id.registerButton);
+            if (marker == null) {
+                selectedMarker = null;
+                registerButton.setVisibility(View.INVISIBLE);
+            } else {
+                registerButton.setVisibility(View.VISIBLE);
+            }
+        }
         return true;
     }
 
+
+    @Override
+    public void onMapClick(LatLng latLng) {
+        registerButton = (Button) findViewById(R.id.registerButton);
+        registerButton.setVisibility(View.INVISIBLE);
+        selectedMarker = null;
+    }
 }

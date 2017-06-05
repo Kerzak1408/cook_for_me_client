@@ -120,5 +120,15 @@ android:layout_height="match_parent">
         android:layout_alignParentStart="true"
         android:layout_below="@+id/cookingButtonsLayout" />
 
+    <Button
+        android:id="@+id/registerButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/confirmLocation"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="25dp"
+        android:text="Register"
+        android:visibility="invisible" />
+
 
 </RelativeLayout>
