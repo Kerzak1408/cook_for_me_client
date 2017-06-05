@@ -75,8 +75,10 @@ public class ClientThread extends Thread {
 
     public void writeLine(String line) {
         try {
-            writer.write(line + "\n");
-            writer.flush();
+            if (writer != null) {
+                writer.write(line + "\n");
+                writer.flush();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
