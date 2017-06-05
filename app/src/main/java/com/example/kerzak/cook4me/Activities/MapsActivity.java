@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -15,6 +17,7 @@ import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -51,7 +54,7 @@ import java.util.HashMap;
 import java.util.List;
 
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener, GoogleMap.OnMarkerClickListener {
 
     HashMap<String, Marker> cooks;
 
@@ -241,7 +244,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (!cookMode || myCookingData == null || !data.getLogin().equals(myCookingData.getLogin())) {
                     Marker newMarker = mMap.addMarker(new MarkerOptions().position(data.getLocation()).icon(BitmapDescriptorFactory.defaultMarker(
                             BitmapDescriptorFactory.HUE_ORANGE)));
+
+                    String details = "";
+                    details += "PRICE: " + data.getPrice() + " " + data.getCurrency();
+                    details += "\nFROM: " + data.getHourFrom() + "." + data.getMinuteFrom() + " " +
+                            data.getDayFrom() + "-" + data.getMonthFrom() + "-" + data.getYearFrom();
+                    details += "\nTO: " + data.getHourTo() + "." + data.getMinuteTo() + " " +
+                            data.getDayTo() + "-" + data.getMonthTo() + "-" + data.getYearTo();
+                    details += "\nPORTIONS: " + data.getAvailablePortions() + "/" + data.getPortions();
+                    details += "\nTAKE-AWAY ONLY: " + data.getTakeAwayOnly();
+                    details += "\nNOTES: " + data.getNotes();
+
                     newMarker.setTitle(data.getName());
+                    newMarker.setSnippet(details);
                     cooks.put(data.getLogin(),newMarker);
                     cookingDataMap.put(newMarker,data);
                 }
@@ -400,6 +415,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
 
         mMap = googleMap;
+
+        setInfoAdapter();
         cookButton.setVisibility(View.VISIBLE);
 
         if (cookMode) {
@@ -430,6 +447,39 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
 
+    }
+
+    private void setInfoAdapter() {
+        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+
+            @Override
+            public View getInfoWindow(Marker arg0) {
+                return null;
+            }
+
+            @Override
+            public View getInfoContents(Marker marker) {
+
+                Context context = getApplicationContext();
+                LinearLayout info = new LinearLayout(context);
+                info.setOrientation(LinearLayout.VERTICAL);
+
+                TextView title = new TextView(context);
+                title.setTextColor(Color.BLACK);
+                title.setGravity(Gravity.CENTER);
+                title.setTypeface(null, Typeface.BOLD);
+                title.setText(marker.getTitle());
+
+                TextView snippet = new TextView(context);
+                snippet.setTextColor(Color.GRAY);
+                snippet.setText(marker.getSnippet());
+
+                info.addView(title);
+                info.addView(snippet);
+
+                return info;
+            }
+        });
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -480,14 +530,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Do you really want to quit cook mode? Your cooking session will be canceled. ").setPositiveButton("Yes", dialogClickListener)
                 .setNegativeButton("No", dialogClickListener).show();
-
-//        if (mLocation != null ) {
-//            LatLng latLng = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
-//            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12));
-//            cookButton.setImageResource(R.drawable.cook_hat);
-//            whereAmI.remove();
-//        }
-
     }
 
     private void cancelCooking() {
@@ -496,9 +538,33 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         clientThread.writeLine("cancelCooking");
     }
 
-    private void refreshCooks() {
+    @Override
+    public boolean onMarkerClick(final Marker marker) {
 
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                    {
+                        // TODO: register for the cooking.
+                    }
+                    break;
+                }
+            }
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+//        CookingData data = cookingDataMap.get(marker);
+
+
+
+        builder.setMessage("TEEEST").setPositiveButton("Register", dialogClickListener)
+                .setNegativeButton("Cancel", dialogClickListener);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        return true;
     }
-
 
 }
