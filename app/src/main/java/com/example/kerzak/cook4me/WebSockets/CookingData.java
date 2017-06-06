@@ -138,4 +138,8 @@ public class CookingData implements Serializable {
     public int getPortions() {
         return portions;
     }
+
+    public void setRegisteredCooks(int numberOfEaters) {
+        this.availablePortions = portions - numberOfEaters;
+    }
 }

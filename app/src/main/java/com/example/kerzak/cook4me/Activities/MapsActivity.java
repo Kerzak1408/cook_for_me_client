@@ -71,7 +71,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private GoogleMap mMap;
 
-    public Marker whereAmI;
     boolean initialized = false;
 
     private GoogleApiClient mGoogleApiClient;
@@ -104,6 +103,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //    private CustomerThread customerThread;
 
     private boolean cookMode = false;
+    private boolean registered = false;
+
     public  boolean isInCookMode() {
         return cookMode;
     }
@@ -136,9 +137,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        registerButton = (Button) findViewById(R.id.registerButton);
-        // TODO: register listener
 
         cooks = new HashMap<>();
         cookingDataMap = new HashMap<>();
@@ -178,8 +176,40 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         changeCookingButtonsVisibility(false);
         loggerView = (TextView) findViewById(R.id.logger);
 
+
+
         clientThread = new ClientThread(serverMessageHandler);
         clientThread.start();
+
+        registerButton = (Button) findViewById(R.id.registerButton);
+
+
+        registerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which){
+                            case DialogInterface.BUTTON_POSITIVE:
+                            {
+                                registered = true;
+                                CookingData data = cookingDataMap.get(selectedMarker);
+                                clientThread.writeLine("register#" + data.getLogin());
+                                registerButton.setVisibility(View.INVISIBLE);
+                                selectedMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+                            }
+                            break;
+                        }
+                    }
+                };
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+                builder.setMessage("Do you really want to register for this cooking? You will not be able to cancel your registration later.").setPositiveButton("Yes", dialogClickListener)
+                        .setNegativeButton("No", dialogClickListener).show();
+
+            }
+        });
 
         try {
             Thread.currentThread().sleep(1000);
@@ -206,10 +236,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         );
     }
 
-    private void parseMessageFromServer(String msg) {
-
-    }
-
     private void customerLogic() {
         if (clientThread != null) {
             clientThread.writeLine("refresh");
@@ -227,6 +253,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         deserialized.setLocation(latLng);
         deserialized.setLogin(login);
         myCookingData = deserialized;
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar.setMax(myCookingData.getPortions());
         final String completeJSON = gson.toJson(deserialized);
 
         // TODO Auto-generated method stub
@@ -262,8 +290,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     newMarker.setTitle(data.getName());
                     newMarker.setSnippet(details);
-                    cooks.put(data.getLogin(),newMarker);
-                    cookingDataMap.put(newMarker,data);
+                    cooks.put(data.getLogin(), newMarker);
+                    cookingDataMap.put(newMarker, data);
                 }
 
 
@@ -279,8 +307,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Marker toBeRemoved = cooks.get(login);
                 loggerView.setText("is marker null:" + (toBeRemoved == null));
                 if (toBeRemoved != null) {
-                    if (toBeRemoved ==selectedMarker) {
+                    loggerView.setText("SELECTED ID = " + selectedMarker.getId() + " TBD ID = " + toBeRemoved.getId());
+                    if (toBeRemoved == selectedMarker) {
                         selectedMarker = null;
+                        // TODO: info dialog about cooking cancellation
                     }
                     toBeRemoved.remove();
                     cooks.remove(login);
@@ -291,6 +321,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // CLEAR MAP
             else if (msg.arg1 == 2){
                 mMap.clear();
+            }
+//             NEW USER REGISTERED TO COOKING
+            else if (msg.arg1 == 3) {
+                String[] splitMsg = (String[]) msg.obj;
+                String cookName = splitMsg[1];
+                int numberOfEaters = Integer.parseInt(splitMsg[2]);
+                if (cookName.equals(login)) {
+                    progressBar = (ProgressBar) findViewById(R.id.progressBar);
+                    progressBar.setProgress(numberOfEaters);
+                } else {
+                    Marker cooksMarker = cooks.get(cookName);
+                    CookingData cooksData = cookingDataMap.get(cooksMarker);
+                    cooksData.setRegisteredCooks(numberOfEaters);
+                }
+
             }
 
         }
@@ -455,8 +500,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             customerLogic();
         }
-
-
     }
 
     private void setInfoAdapter() {
@@ -555,15 +598,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 selectedMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
             }
             selectedMarker = marker;
-            selectedMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-            selectedMarker.showInfoWindow();
-            registerButton = (Button) findViewById(R.id.registerButton);
-            if (marker == null) {
-                selectedMarker = null;
-                registerButton.setVisibility(View.INVISIBLE);
-            } else {
+            if (!registered) {
+                selectedMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
                 registerButton.setVisibility(View.VISIBLE);
             }
+            selectedMarker.showInfoWindow();
+            registerButton = (Button) findViewById(R.id.registerButton);
+
         }
         return true;
     }
@@ -573,6 +614,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapClick(LatLng latLng) {
         registerButton = (Button) findViewById(R.id.registerButton);
         registerButton.setVisibility(View.INVISIBLE);
+        if (selectedMarker != null && !registered) {
+            selectedMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+        }
         selectedMarker = null;
     }
 }

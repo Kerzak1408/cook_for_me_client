@@ -59,6 +59,9 @@ public class ClientThread extends Thread {
                 } else if ("remove".equals(splitMsg[0])) {
                     msg.arg1 = 1;
                     msg.obj = splitMsg[1];
+                } else if ("registered".equals(splitMsg[0])){
+                    msg.arg1 = 3;
+                    msg.obj = splitMsg;
                 }
                 handler.sendMessage(msg);
             }
