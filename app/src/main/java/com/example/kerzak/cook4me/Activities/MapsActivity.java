@@ -98,6 +98,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     Gson gson = new Gson();
     CookingData myCookingData;
     Marker selectedMarker;
+    String totalPortions= "";
 
     private ClientThread clientThread;
 //    private CustomerThread customerThread;
@@ -178,7 +179,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
 
-        clientThread = new ClientThread(serverMessageHandler);
+        clientThread = new ClientThread(serverMessageHandler, login);
         clientThread.start();
 
         registerButton = (Button) findViewById(R.id.registerButton);
@@ -198,6 +199,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 clientThread.writeLine("register#" + data.getLogin());
                                 registerButton.setVisibility(View.INVISIBLE);
                                 selectedMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+                                refreshSnippet(selectedMarker, true);
+                                selectedMarker.showInfoWindow();
                             }
                             break;
                         }
@@ -240,7 +243,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (clientThread != null) {
             clientThread.writeLine("refresh");
         }
-        loggerView.setText("Customer logic");
+//        loggerView.setText("Customer logic");
 //        clientThread.writeLine("cancelCooking");
         // TODO: tell server to finish cook ?
     }
@@ -256,7 +259,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         progressBar.setMax(myCookingData.getPortions());
         final String completeJSON = gson.toJson(deserialized);
-
+        totalPortions = String.valueOf(myCookingData.getPortions());
         // TODO Auto-generated method stub
         clientThread.writeLine("cook#" + completeJSON);
     }
@@ -269,7 +272,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // When there is message, execute this method
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            loggerView.setText("IN serverMessageHandler");
+//            loggerView.setText("IN serverMessageHandler");
             // ADD COOK
             if (msg.arg1 == 0) {
 
@@ -277,21 +280,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (!cookMode || myCookingData == null || !data.getLogin().equals(myCookingData.getLogin())) {
                     Marker newMarker = mMap.addMarker(new MarkerOptions().position(data.getLocation()).icon(BitmapDescriptorFactory.defaultMarker(
                             BitmapDescriptorFactory.HUE_ORANGE)));
-
-                    String details = "";
-                    details += "PRICE: " + data.getPrice() + " " + data.getCurrency();
-                    details += "\nFROM: " + data.getHourFrom() + "." + data.getMinuteFrom() + " " +
-                            data.getDayFrom() + "-" + data.getMonthFrom() + "-" + data.getYearFrom();
-                    details += "\nTO: " + data.getHourTo() + "." + data.getMinuteTo() + " " +
-                            data.getDayTo() + "-" + data.getMonthTo() + "-" + data.getYearTo();
-                    details += "\nPORTIONS: " + data.getAvailablePortions() + "/" + data.getPortions();
-                    details += "\nTAKE-AWAY ONLY: " + data.getTakeAwayOnly();
-                    details += "\nNOTES: " + data.getNotes();
-
+//                    loggerView.setText("marker added in handler");
                     newMarker.setTitle(data.getName());
-                    newMarker.setSnippet(details);
+
                     cooks.put(data.getLogin(), newMarker);
                     cookingDataMap.put(newMarker, data);
+                    refreshSnippet(newMarker, false);
                 }
 
 
@@ -303,18 +297,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     myCookingData = null;
                     if (myMarker != null) myMarker.remove();
                     loadEatMode();
-                }
-                Marker toBeRemoved = cooks.get(login);
-                loggerView.setText("is marker null:" + (toBeRemoved == null));
-                if (toBeRemoved != null) {
-                    loggerView.setText("SELECTED ID = " + selectedMarker.getId() + " TBD ID = " + toBeRemoved.getId());
-                    if (toBeRemoved == selectedMarker) {
-                        selectedMarker = null;
-                        // TODO: info dialog about cooking cancellation
+                } else {
+                    Marker toBeRemoved = cooks.get(login);
+//                    loggerView.setText("is marker null:" + (toBeRemoved == null));
+                    if (toBeRemoved != null) {
+//                        loggerView.setText("SELECTED ID = " + selectedMarker.getId() + " TBD ID = " + toBeRemoved.getId());
+                        if (toBeRemoved == selectedMarker) {
+                            selectedMarker = null;
+                            // TODO: info dialog about cooking cancellation
+                        }
+                        toBeRemoved.remove();
+                        if (cooks.containsKey(login)) {
+                            cooks.remove(login);
+                        }
                     }
-                    toBeRemoved.remove();
-                    cooks.remove(login);
                 }
+
 
 
             }
@@ -330,16 +328,39 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (cookName.equals(login)) {
                     progressBar = (ProgressBar) findViewById(R.id.progressBar);
                     progressBar.setProgress(numberOfEaters);
+                    progressTextView = (TextView) findViewById(R.id.progressText);
+                    progressTextView.setText("Users registered for your cooking: " + numberOfEaters + "/" + totalPortions);
                 } else {
                     Marker cooksMarker = cooks.get(cookName);
                     CookingData cooksData = cookingDataMap.get(cooksMarker);
                     cooksData.setRegisteredCooks(numberOfEaters);
+                    refreshSnippet(cooksMarker, false);
                 }
 
             }
 
         }
     };
+
+    private void refreshSnippet(Marker marker, boolean decreasePortions) {
+        CookingData data = cookingDataMap.get(marker);
+        String details = "";
+        details += "PRICE: " + data.getPrice() + " " + data.getCurrency();
+        details += "\nFROM: " + data.getHourFrom() + "." + data.getMinuteFrom() + " " +
+                data.getDayFrom() + "-" + data.getMonthFrom() + "-" + data.getYearFrom();
+        details += "\nTO: " + data.getHourTo() + "." + data.getMinuteTo() + " " +
+                data.getDayTo() + "-" + data.getMonthTo() + "-" + data.getYearTo();
+        details += "\nCATEGORIES:";
+        for (String category : data.getCategories()) {
+            details += " " + category;
+        }
+        int availablePortions = data.getAvailablePortions();
+        if (decreasePortions) availablePortions--;
+        details += "\nPORTIONS: " + availablePortions + "/" + data.getPortions();
+        details += "\nTAKE-AWAY ONLY: " + data.getTakeAwayOnly();
+        details += "\nNOTES: " + data.getNotes();
+        marker.setSnippet(details);
+    }
 
     @Override
     public void onConnected(Bundle bundle) {
@@ -498,7 +519,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             });
         } else {
-            customerLogic();
+//            loggerView.setText("522 cl");
+//            customerLogic();
         }
     }
 
@@ -573,6 +595,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     {
                         switchCookMode();
                         cancelCooking();
+                        loggerView.setText("598 cl");
                         customerLogic();
                     }
                     break;
@@ -596,12 +619,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (!cookMode) {
             if (selectedMarker != null) {
                 selectedMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+//                loggerView.setText("onMarkerClick=" + registered);
             }
             selectedMarker = marker;
             if (!registered) {
                 selectedMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
                 registerButton.setVisibility(View.VISIBLE);
             }
+            refreshSnippet(marker, false);
             selectedMarker.showInfoWindow();
             registerButton = (Button) findViewById(R.id.registerButton);
 
@@ -616,6 +641,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         registerButton.setVisibility(View.INVISIBLE);
         if (selectedMarker != null && !registered) {
             selectedMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+            loggerView.setText("onMapClick REGISTERED=" + registered);
         }
         selectedMarker = null;
     }

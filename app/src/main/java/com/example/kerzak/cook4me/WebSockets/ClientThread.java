@@ -24,9 +24,12 @@ public class ClientThread extends Thread {
     private BufferedWriter writer;
     private BufferedReader reader;
     private Socket socket;
+    private String myLogin;
 
-    public ClientThread(Handler handler) {
+    public ClientThread(Handler handler, String myLogin) {
+
         this.handler = handler;
+        this.myLogin = myLogin;
     }
 
 
@@ -37,10 +40,9 @@ public class ClientThread extends Thread {
             socket = new Socket("192.168.179.94", 6666);
 
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-//                    bw.write("Ciao server\n");
-//                    bw.flush();
-//            writer.write("cook#" + completeJSON + "\n");
-//            writer.flush();
+
+            writer.write("login#" +  myLogin + "\n");
+            writer.flush();
             // Get input buffer
             reader = new BufferedReader(
                     new InputStreamReader(socket.getInputStream()));
