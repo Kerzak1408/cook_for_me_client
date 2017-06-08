@@ -20,16 +20,13 @@ android:layout_height="match_parent">
         android:id="@+id/cookButton"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:layout_marginBottom="16dp"
-        android:layout_marginLeft="26dp"
-        android:layout_marginStart="26dp"
         android:adjustViewBounds="true"
         android:scaleType="fitCenter"
         android:padding="0dp"
         app:srcCompat="@drawable/cook_hat"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_below="@+id/logger"
+        android:layout_toRightOf="@+id/confirmLocation"
+        android:layout_toEndOf="@+id/confirmLocation" />
 
     <ImageView
         android:id="@+id/markerImage"
@@ -45,10 +42,12 @@ android:layout_height="match_parent">
         android:id="@+id/confirmLocation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/cookButton"
-        android:layout_centerHorizontal="true"
         android:text="Confirm location"
-        android:visibility="invisible" />
+        android:visibility="invisible"
+        android:layout_below="@+id/markerImage"
+        android:layout_toRightOf="@+id/buttonFilters"
+        android:layout_toEndOf="@+id/buttonFilters"
+        android:layout_marginTop="57dp" />
 
     <TextView
         android:id="@+id/logger"
@@ -124,11 +123,19 @@ android:layout_height="match_parent">
         android:id="@+id/registerButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/confirmLocation"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="25dp"
         android:text="Register"
-        android:visibility="invisible" />
+        android:visibility="invisible"
+        android:layout_alignBaseline="@+id/confirmLocation"
+        android:layout_alignBottom="@+id/confirmLocation"
+        android:layout_centerHorizontal="true" />
+
+    <RatingBar
+        android:id="@+id/ratingBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="16dp" />
 
 
 </RelativeLayout>

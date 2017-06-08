@@ -190,4 +190,6 @@
         <item>Salad</item>
         <item>Other</item>
     </string-array>
+    <string name="title_activity_ranking">RankingActivity</string>
+    <string name="title_activity_ranking_activiry">RankingActiviry</string>
 </resources>

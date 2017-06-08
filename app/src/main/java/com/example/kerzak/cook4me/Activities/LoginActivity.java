@@ -470,6 +470,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 } else if ("WRONGPASS".equals(server_response)){
                     mLog.setTextColor(Color.RED);
                     mLog.setText("Wrong password.");
+                } else if("NICKNAME".equals(server_response)) {
+                    Intent myIntent = new Intent(LoginActivity.this,NicknameSetActivity.class);
+                    myIntent.putExtra("login",mEmail);
+                    myIntent.putExtra("pass", mPassword);
+                    LoginActivity.this.startActivity(myIntent);
                 } else {
                     mLog.setTextColor(Color.RED);
                     mLog.setText("Something went wrong. Check your connection.");

@@ -557,6 +557,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
         MenuInflater inflater = getMenuInflater();
@@ -564,10 +565,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return true;
     }
 
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
-        //respond to menu item selection
-        return true;
+        switch (item.getItemId()) {
+            case R.id.rank:
+                Intent myIntent = new Intent(MapsActivity.this,RankingActiviry.class);
+                myIntent.putExtra("login",login);
+                MapsActivity.this.startActivity(myIntent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     public void loadCookMode() {

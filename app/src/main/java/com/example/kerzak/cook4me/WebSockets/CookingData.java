@@ -31,6 +31,7 @@ public class CookingData implements Serializable {
     private String notes;
     private String currency;
     private LatLng location;
+    private float rating;
 
     public CookingData(String login, String name, List<String> categories, int dayFrom, int monthFrom, int yearFrom,
                        int hourFrom, int minuteFrom, int dayTo, int monthTo, int yearTo, int hourTo, int minuteTo,
