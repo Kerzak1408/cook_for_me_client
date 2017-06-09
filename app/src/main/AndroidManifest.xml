@@ -46,13 +46,10 @@
         </activity>
         <activity android:name=".Activities.CookingInfoActivity" />
         <activity
-            android:name=".Activities.RankingActivity"
+            android:name=".Activities.SearchUserActivity"
             android:label="@string/title_activity_ranking"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".Activities.RankingActiviry"
-            android:label="@string/title_activity_ranking_activiry"
-            android:theme="@style/AppTheme.NoActionBar" />
+
         <activity android:name=".Activities.NicknameSetActivity"></activity>
     </application>
 

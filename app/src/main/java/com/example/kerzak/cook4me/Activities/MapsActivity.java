@@ -569,7 +569,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.rank:
-                Intent myIntent = new Intent(MapsActivity.this,RankingActiviry.class);
+                Intent myIntent = new Intent(MapsActivity.this,SearchUserActivity.class);
                 myIntent.putExtra("login",login);
                 MapsActivity.this.startActivity(myIntent);
                 return true;

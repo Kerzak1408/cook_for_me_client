@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.example.kerzak.cook4me.Activities.RankingActiviry"
-    tools:showIn="@layout/activity_ranking_activiry">
+    tools:context="com.example.kerzak.cook4me.Activities.SearchUserActivity"
+    tools:showIn="@layout/activity_search_user">
 
 </android.support.constraint.ConstraintLayout>
