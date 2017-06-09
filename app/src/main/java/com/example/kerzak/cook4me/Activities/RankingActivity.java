@@ -4,15 +4,16 @@ import android.app.ListActivity;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
-import android.widget.ListView;
+import android.widget.TextView;
 
+import com.example.kerzak.cook4me.DataStructures.Ranking;
 import com.example.kerzak.cook4me.R;
 import com.google.gson.Gson;
 
@@ -24,13 +25,12 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
-public class SearchUserActivity extends ListActivity  {
+public class RankingActivity extends ListActivity {
 
-    private SearchTask mAuthTask = null;
-
-    EditText searchUsersEditText;
+    RankingTask mAuthTask = null;
 
     //LIST OF ARRAY STRINGS WHICH WILL SERVE AS LIST ITEMS
     List<String> listItems=new ArrayList<String>();
@@ -38,68 +38,36 @@ public class SearchUserActivity extends ListActivity  {
     //DEFINING A STRING ADAPTER WHICH WILL HANDLE THE DATA OF THE LISTVIEW
     ArrayAdapter<String> adapter;
 
+    String cookName;
+    TextView rankingTextView;
+
     @Override
-    public void onCreate(Bundle icicle) {
-        super.onCreate(icicle);
-        setContentView(R.layout.activity_search_user);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_ranking);
         adapter=new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1,
                 listItems);
         setListAdapter(adapter);
 
+        Bundle extras = getIntent().getExtras();
+        cookName = extras.getString("name");
+        TextView nameTextView = (TextView) findViewById(R.id.userNameTextView);
+        nameTextView.setText(cookName);
+        rankingTextView = (TextView) findViewById(R.id.rankingOfUserTextView);
 
-        searchUsersEditText = (EditText) findViewById(R.id.searchUsersEditText);
-        searchUsersEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                mAuthTask = new SearchTask(s.toString());
-                mAuthTask.execute();
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
-
-        ListView listView = getListView();
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent myIntent = new Intent(SearchUserActivity.this,RankingActivity.class);
-                String name = (String)parent.getItemAtPosition(position);
-                myIntent.putExtra("name", name);
-                SearchUserActivity.this.startActivity(myIntent);
-            }
-        });
-
+        RankingTask rankingTask = new RankingTask(cookName);
+        rankingTask.execute();
     }
 
-
-//    private void setUpBackButton() {
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.backToMenuFButton);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Intent myIntent = new Intent(SearchUserActivity.this,MapsActivity.class);
-//                SearchUserActivity.this.startActivity(myIntent);
-//            }
-//        });
-//    }
-
-    public class SearchTask extends AsyncTask<Void, Void, Boolean> {
+    public class RankingTask extends AsyncTask<Void, Void, Boolean> {
 
 
         String server_response;
-        private final String mPattern;
+        private final String mName;
 
-        SearchTask(String pattern) {
-            this.mPattern = pattern;
+        RankingTask(String name) {
+            this.mName = name;
         }
 
         @Override
@@ -108,7 +76,7 @@ public class SearchUserActivity extends ListActivity  {
             HttpURLConnection urlConnection = null;
 
             try {
-                url = new URL("http://192.168.179.94:8090/searchusers?pattern=" + mPattern);
+                url = new URL("http://192.168.179.94:8090/getuserranking?name=" + mName);
 
                 urlConnection = (HttpURLConnection) url.openConnection();
 
@@ -164,9 +132,15 @@ public class SearchUserActivity extends ListActivity  {
 
             if (success) {
                 Gson gson = new Gson();
-                List<String> result = gson.fromJson(server_response, List.class);
+                Ranking result = gson.fromJson(server_response, Ranking.class);
+                rankingTextView.setText(result.getRanking() + "/5");
                 listItems.clear();
-                listItems.addAll(result);
+                HashMap<String, String> comments = result.getComments();
+                for (String user : comments.keySet()) {
+                    String comment = comments.get(user);
+                    listItems.add(user + ": " + comment);
+                }
+
                 adapter.notifyDataSetChanged();;
             }
         }

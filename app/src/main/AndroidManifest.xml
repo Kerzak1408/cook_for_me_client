@@ -49,8 +49,11 @@
             android:name=".Activities.SearchUserActivity"
             android:label="@string/title_activity_ranking"
             android:theme="@style/AppTheme.NoActionBar" />
-
-        <activity android:name=".Activities.NicknameSetActivity"></activity>
+        <activity android:name=".Activities.NicknameSetActivity" />
+        <activity
+            android:name=".Activities.RankingActivity"
+            android:label="@string/title_activity_ranking"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
