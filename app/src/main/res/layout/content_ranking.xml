@@ -45,7 +45,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:numStars="5" />
+                android:numStars="5"
+                android:stepSize="1" />
 
             <TextView
                 android:id="@+id/myNick"
@@ -71,7 +72,7 @@
             <ListView
                 android:id="@android:id/list"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="362dp"
                 android:drawSelectorOnTop="false" />
         </LinearLayout>
     </ScrollView>

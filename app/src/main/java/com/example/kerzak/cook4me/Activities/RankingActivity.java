@@ -27,22 +27,32 @@ import com.example.kerzak.cook4me.DataStructures.Ranking;
 import com.example.kerzak.cook4me.R;
 import com.google.gson.Gson;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
 
 public class RankingActivity extends ListActivity {
 
 
 
     RankingTask mAuthTask = null;
+    UpdateRankingTask updateRankingTask = null;
 
     //LIST OF ARRAY STRINGS WHICH WILL SERVE AS LIST ITEMS
     List<String> listItems=new ArrayList<String>();
@@ -82,7 +92,11 @@ public class RankingActivity extends ListActivity {
         updateRanking.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                int stars = (int) ratingBar.getRating();
+                String comment = myComment.getText().toString();
                 updateRanking.setVisibility(View.GONE);
+                updateRankingTask = new UpdateRankingTask(cookName, stars, comment);
+                updateRankingTask.execute();
             }
         });
         myComment = (EditText) findViewById(R.id.editMyComment);
@@ -234,7 +248,7 @@ public class RankingActivity extends ListActivity {
             if (success) {
                 Gson gson = new Gson();
                 Ranking result = gson.fromJson(server_response, Ranking.class);
-                rankingTextView.setText(result.getRanking() + "/10");
+                rankingTextView.setText(result.getRanking() + "/5");
                 listItems.clear();
                 HashMap<String, String> comments = result.getComments();
                 HashMap<String, Integer> rankings = result.getRankings();
@@ -242,9 +256,9 @@ public class RankingActivity extends ListActivity {
                     String comment = comments.get(user);
                     if (user.equals(LoginActivity.nickname)) {
                         myComment.setText(comment);
-                        ratingBar.setProgress(rankings.get(user));
+                        ratingBar.setRating(rankings.get(user));
                     } else {
-                        listItems.add(user + " (" + rankings.get(user) + "/10): " + comment);
+                        listItems.add(user + " (" + rankings.get(user) + "/5): " + comment);
                     }
                 }
                 adapter.notifyDataSetChanged();;
@@ -255,6 +269,127 @@ public class RankingActivity extends ListActivity {
         @Override
         protected void onCancelled() {
             mAuthTask = null;
+        }
+    }
+
+
+    public class UpdateRankingTask extends AsyncTask<Void, Void, Boolean> {
+
+
+        String server_response = "";
+        private final String cook;
+        private final int stars;
+        private final String comment;
+
+        UpdateRankingTask(String cook, int stars, String comment) {
+            this.cook = cook;
+            this.stars = stars;
+            this.comment = comment;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            URL url;
+            HttpURLConnection urlConnection = null;
+
+            try {
+                url = new URL("http://192.168.179.94:8090/updateuserranking?name=" + LoginActivity.email + "&pass=" + LoginActivity.password +
+                        "&cook=" + cook + "&stars=" + stars);
+
+                urlConnection = (HttpURLConnection) url.openConnection();
+
+                urlConnection.setRequestMethod("POST");
+                urlConnection.setRequestProperty("comment",comment);
+                urlConnection.setDoOutput(true);
+
+                HashMap<String,String> postDataParams = new HashMap<>();
+                postDataParams.put("comment",comment);
+                OutputStream os = urlConnection.getOutputStream();
+                BufferedWriter writer = new BufferedWriter(
+                        new OutputStreamWriter(os, "UTF-8"));
+                writer.write(getPostDataString(postDataParams));
+
+                writer.flush();
+                writer.close();
+                os.close();
+                int responseCode=urlConnection.getResponseCode();
+
+                if (responseCode == HttpsURLConnection.HTTP_OK) {
+                    String line;
+                    BufferedReader br=new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+                    while ((line=br.readLine()) != null) {
+                        server_response+=line;
+                    }
+                }
+                else {
+                    server_response="";
+
+                }
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                // Simulate network access.
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                return false;
+            }
+
+            return true;
+        }
+
+        private String getPostDataString(HashMap<String, String> params) throws UnsupportedEncodingException {
+            StringBuilder result = new StringBuilder();
+            boolean first = true;
+            for(Map.Entry<String, String> entry : params.entrySet()){
+                if (first)
+                    first = false;
+                else
+                    result.append("&");
+
+                result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
+                result.append("=");
+                result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
+            }
+
+            return result.toString();
+        }
+
+        private String readStream(InputStream in) {
+            BufferedReader reader = null;
+            StringBuffer response = new StringBuffer();
+            try {
+                reader = new BufferedReader(new InputStreamReader(in));
+                String line = "";
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return response.toString();
+        }
+
+        @Override
+        protected void onPostExecute(final Boolean success) {
+            updateRankingTask = null;
+        }
+
+        @Override
+        protected void onCancelled() {
+            updateRankingTask = null;
         }
     }
 
