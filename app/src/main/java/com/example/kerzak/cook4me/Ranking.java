@@ -1,8 +1,10 @@
-package com.example.kerzak.cook4me.DataStructures;
+package com.example.kerzak.cook4me;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class Ranking {
+	// Key: who, Value: comment itself
 	private HashMap<String, String> comments;
 	// Key: who, Value: stars
 	private HashMap<String, Integer> rankings;
@@ -36,3 +38,4 @@ public class Ranking {
 	}
 
 }
+

@@ -38,6 +38,8 @@ public class SearchUserActivity extends ListActivity  {
     //DEFINING A STRING ADAPTER WHICH WILL HANDLE THE DATA OF THE LISTVIEW
     ArrayAdapter<String> adapter;
 
+    String myLogin;
+
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
@@ -78,6 +80,12 @@ public class SearchUserActivity extends ListActivity  {
             }
         });
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent myIntent = new Intent(SearchUserActivity.this,MapsActivity.class);
+        SearchUserActivity.this.startActivity(myIntent);
     }
 
 

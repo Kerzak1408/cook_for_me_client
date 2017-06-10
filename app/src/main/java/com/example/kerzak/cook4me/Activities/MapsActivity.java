@@ -169,7 +169,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         cookButton.setVisibility(View.INVISIBLE);
         Bundle extras = getIntent().getExtras();
         json = getIntent().getStringExtra("json");
-        login = getIntent().getStringExtra("login");
+        login = LoginActivity.email;
         cookMode = false;
         if (json != null) {
             switchCookMode();
@@ -251,7 +251,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void cookLogic(LatLng latLng) {
         json = getIntent().getStringExtra("json");
-        getIntent().getStringExtra("login");
         CookingData deserialized = gson.fromJson(json, CookingData.class);
         deserialized.setLocation(latLng);
         deserialized.setLogin(login);

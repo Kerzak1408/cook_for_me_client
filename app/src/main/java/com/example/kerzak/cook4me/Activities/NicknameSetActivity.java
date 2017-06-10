@@ -44,9 +44,8 @@ public class NicknameSetActivity extends AppCompatActivity {
         mProgressView = findViewById(R.id.nickProgressBar);
         mLoginFormView = findViewById(R.id.nick_form);
         mLog = (TextView) findViewById(R.id.errorTextView);
-        Bundle extras = getIntent().getExtras();
-        mEmail = extras.getString("login");
-        mPassword = extras.getString("pass");
+        mEmail = LoginActivity.email;
+        mPassword = LoginActivity.password;
         setConfirmNicknameButtonLogic();
     }
 

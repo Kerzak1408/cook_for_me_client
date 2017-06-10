@@ -55,6 +55,9 @@ import static android.Manifest.permission.READ_CONTACTS;
  */
 public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
 
+    public static String nickname = "";
+    public static String email = "";
+    public static String password = "";
     /**
      * Id to identity READ_CONTACTS permission request.
      */
@@ -222,8 +225,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mPasswordView.setError(null);
 
         // Store values at the time of the login attempt.
-        String email = mEmailView.getText().toString();
-        String password = mPasswordView.getText().toString();
+        email = mEmailView.getText().toString();
+        password = mPasswordView.getText().toString();
 
         boolean cancel = false;
         View focusView = null;
@@ -457,23 +460,22 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         protected void onPostExecute(final Boolean success) {
             mAuthTask = null;
             showProgress(false);
-
+            String[] splitResponse = server_response.split("#");
+            String firstPart = splitResponse[0];
             if (success) {
-                if ("OK".equals(server_response)) {
+                if ("OK".equals(firstPart)) {
+                    nickname = splitResponse[1];
                     finish();
                     Intent myIntent = new Intent(LoginActivity.this,MapsActivity.class);
-                    myIntent.putExtra("login",mEmail);
                     LoginActivity.this.startActivity(myIntent);
-                } else if ("NEW".equals(server_response)) {
+                } else if ("NEW".equals(firstPart)) {
                     mLog.setTextColor(Color.GREEN);
                     mLog.setText("Check your e-mail to cofirm the registration.");
-                } else if ("WRONGPASS".equals(server_response)){
+                } else if ("WRONGPASS".equals(firstPart)){
                     mLog.setTextColor(Color.RED);
                     mLog.setText("Wrong password.");
-                } else if("NICKNAME".equals(server_response)) {
+                } else if("NICKNAME".equals(firstPart)) {
                     Intent myIntent = new Intent(LoginActivity.this,NicknameSetActivity.class);
-                    myIntent.putExtra("login",mEmail);
-                    myIntent.putExtra("pass", mPassword);
                     LoginActivity.this.startActivity(myIntent);
                 } else {
                     mLog.setTextColor(Color.RED);
