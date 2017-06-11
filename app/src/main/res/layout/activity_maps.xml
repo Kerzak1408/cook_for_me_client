@@ -106,18 +106,20 @@ android:layout_height="match_parent">
         android:id="@+id/buttonFilters"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_toEndOf="@+id/logger"
-        android:layout_toRightOf="@+id/logger"
-        android:text="Filters" />
+        android:text="Filters"
+        android:layout_below="@+id/logger"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
     <SeekBar
         android:id="@+id/seekBarPrice"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/progressBar"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/cookingButtonsLayout" />
+        android:layout_alignRight="@+id/buttonApplyFilters"
+        android:layout_alignEnd="@+id/buttonApplyFilters" />
 
     <Button
         android:id="@+id/registerButton"
@@ -136,6 +138,15 @@ android:layout_height="match_parent">
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/buttonApplyFilters"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Apply"
+        android:layout_below="@+id/cookButton"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
 
 </RelativeLayout>

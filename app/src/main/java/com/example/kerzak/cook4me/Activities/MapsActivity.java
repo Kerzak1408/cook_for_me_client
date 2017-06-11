@@ -52,6 +52,7 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnMapClickListener {
@@ -62,6 +63,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     Button filtersButton;
     SeekBar seekBarPrice;
+    Button applyFiltersButton;
     private static final String SERVER = "ws://echo.websocket.org";
 
     /**
@@ -214,6 +216,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
+        filtersButtonClick();
+        applyFiltersButtonClick();
+
         try {
             Thread.currentThread().sleep(1000);
         } catch (InterruptedException e) {
@@ -224,19 +229,61 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void filtersButtonClick() {
         filtersButton = (Button) findViewById(R.id.buttonFilters);
         seekBarPrice = (SeekBar) findViewById(R.id.seekBarPrice);
+        applyFiltersButton = (Button) findViewById(R.id.buttonApplyFilters);
+
         filtersButton.setOnClickListener(
                 new View.OnClickListener() {
 
                     @Override
                     public void onClick(View v) {
-                        int visibility = View.INVISIBLE;
-                        if (seekBarPrice.getVisibility() == View.INVISIBLE ) {
-                           visibility = View.VISIBLE;
+                        int visibility = View.VISIBLE;
+                        if (seekBarPrice.getVisibility() == View.VISIBLE ) {
+                            visibility = View.INVISIBLE;
                         }
+
                         seekBarPrice.setVisibility(visibility);
+                        applyFiltersButton.setVisibility(visibility);
                     }
                 }
         );
+    }
+
+    private void applyFiltersButtonClick() {
+        seekBarPrice = (SeekBar) findViewById(R.id.seekBarPrice);
+        applyFiltersButton = (Button) findViewById(R.id.buttonApplyFilters);
+
+        applyFiltersButton.setOnClickListener(
+                new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        int visibility = View.INVISIBLE;
+
+                        seekBarPrice.setVisibility(visibility);
+                        applyFiltersButton.setVisibility(visibility);
+                        applyFilters(seekBarPrice.getProgress());
+                    }
+                }
+        );
+    }
+
+    private void applyFilters(int maxPrice) {
+        for(Map.Entry<Marker, CookingData> cooks : cookingDataMap.entrySet()) {
+            Marker cookMarker = cooks.getKey();
+            CookingData cookData = cooks.getValue();
+
+            if (satisfyFilters(cookData, maxPrice))
+                cookMarker.setVisible(true);
+            else
+                cookMarker.setVisible(false);
+        }
+    }
+
+    private boolean satisfyFilters (CookingData cookData, int maxPrice) {
+        if (maxPrice < cookData.getPrice())
+            return false;
+        //TODO
+        return true;
     }
 
     private void customerLogic() {
