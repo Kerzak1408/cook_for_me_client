@@ -14,7 +14,7 @@ android:layout_height="match_parent">
         android:layout_height="match_parent"
         android:id="@+id/map"
         tools:context="com.example.kerzak.cook4me.Activities.MapsActivity"
-        android:name="com.google.android.gms.maps.SupportMapFragment" />
+        android:name="com.google.android.gms.maps.SupportMapFragment"/>
 
     <ImageButton
         android:id="@+id/cookButton"
@@ -23,10 +23,8 @@ android:layout_height="match_parent">
         android:adjustViewBounds="true"
         android:scaleType="fitCenter"
         android:padding="0dp"
-        app:srcCompat="@drawable/cook_hat"
-        android:layout_below="@+id/logger"
-        android:layout_toRightOf="@+id/confirmLocation"
-        android:layout_toEndOf="@+id/confirmLocation" />
+        android:layout_alignParentRight="true"
+        app:srcCompat="@drawable/cook_hat" />
 
     <ImageView
         android:id="@+id/markerImage"
@@ -43,11 +41,7 @@ android:layout_height="match_parent">
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Confirm location"
-        android:visibility="invisible"
-        android:layout_below="@+id/markerImage"
-        android:layout_toRightOf="@+id/buttonFilters"
-        android:layout_toEndOf="@+id/buttonFilters"
-        android:layout_marginTop="57dp" />
+        android:visibility="invisible" />
 
     <TextView
         android:id="@+id/logger"
@@ -102,51 +96,75 @@ android:layout_height="match_parent">
         android:text="Users registered for your cooking:"
         android:visibility="invisible" />
 
-    <Button
-        android:id="@+id/buttonFilters"
+    <LinearLayout
+        android:id="@+id/filterLayout"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Filters"
-        android:layout_below="@+id/logger"
+        android:layout_height="match_parent"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentTop="true"
+        android:orientation="vertical"
+        android:visibility="visible">
 
-    <SeekBar
-        android:id="@+id/seekBarPrice"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/progressBar"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignRight="@+id/buttonApplyFilters"
-        android:layout_alignEnd="@+id/buttonApplyFilters" />
+        <Button
+            android:id="@+id/buttonFilters"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/filters"
+            android:visibility="visible" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="visible">
+
+            <SeekBar
+                android:id="@+id/seekBarPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="invisible" />
+
+            <TextView
+                android:id="@+id/filterPriceText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/_0"
+                android:visibility="invisible" />
+
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/categoriesFilter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="textNoSuggestions|textPersonName"
+            android:text="@string/categories"
+            android:visibility="invisible" />
+
+        <Button
+            android:id="@+id/buttonApplyFilters"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/apply"
+            android:visibility="invisible" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/registerButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Register"
-        android:visibility="invisible"
-        android:layout_alignBaseline="@+id/confirmLocation"
-        android:layout_alignBottom="@+id/confirmLocation"
+        android:visibility="visible"
+        android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
 
     <RatingBar
         android:id="@+id/ratingBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="16dp" />
-
-    <Button
-        android:id="@+id/buttonApplyFilters"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Apply"
-        android:layout_below="@+id/cookButton"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_centerHorizontal="true" />
 
 
 </RelativeLayout>

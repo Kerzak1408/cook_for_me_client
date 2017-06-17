@@ -16,6 +16,7 @@ import android.os.Message;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Layout;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -23,6 +24,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -30,6 +32,7 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.example.kerzak.cook4me.Enums.FoodCategories;
 import com.example.kerzak.cook4me.Listeners.CookButtonListener;
 import com.example.kerzak.cook4me.WebSockets.ClientThread;
 import com.example.kerzak.cook4me.WebSockets.CookingData;
@@ -50,6 +53,7 @@ import com.example.kerzak.cook4me.R;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +67,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     Button filtersButton;
     SeekBar seekBarPrice;
+    TextView categoriesFilter;
+    TextView priceFilterText;
+    int currentPriceInFilter;
     Button applyFiltersButton;
+    HashMap<CharSequence,Boolean> selectedCategories;
+    EditText categoriesInput;
     private static final String SERVER = "ws://echo.websocket.org";
 
     /**
@@ -110,31 +119,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public  boolean isInCookMode() {
         return cookMode;
-    }
-
-    public void switchCookMode() {
-        cookMode = !cookMode;
-        cookingViewLayout = (LinearLayout) findViewById(R.id.cookingButtonsLayout);
-        progressTextView = (TextView) findViewById(R.id.progressText);
-        progressBar = (ProgressBar)findViewById(R.id.progressBar);
-        if (cookMode) {
-            cookButton.setImageResource(R.drawable.eat);
-        } else {
-            cookButton.setImageResource(R.drawable.cook_hat);
-        }
-        changeCookingButtonsVisibility(cookMode);
-    }
-
-    public void changeCookingButtonsVisibility(boolean visible) {
-        int visibility = visible ? View.VISIBLE : View.INVISIBLE;
-
-        cookingViewLayout = (LinearLayout) findViewById(R.id.cookingButtonsLayout);
-        progressTextView = (TextView) findViewById(R.id.progressText);
-        progressBar = (ProgressBar)findViewById(R.id.progressBar);
-
-        cookingViewLayout.setVisibility(visibility);
-        progressBar.setVisibility(visibility);
-        progressTextView.setVisibility(visibility);
     }
 
     @Override
@@ -216,8 +200,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
+        currentPriceInFilter = -1;
+
         filtersButtonClick();
         applyFiltersButtonClick();
+        initializeCategoriesFilter();
+        changePriceFilter();
 
         try {
             Thread.currentThread().sleep(1000);
@@ -226,9 +214,37 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+
+    public void switchCookMode() {
+        cookMode = !cookMode;
+        cookingViewLayout = (LinearLayout) findViewById(R.id.cookingButtonsLayout);
+        progressTextView = (TextView) findViewById(R.id.progressText);
+        progressBar = (ProgressBar)findViewById(R.id.progressBar);
+        if (cookMode) {
+            cookButton.setImageResource(R.drawable.eat);
+        } else {
+            cookButton.setImageResource(R.drawable.cook_hat);
+        }
+        changeCookingButtonsVisibility(cookMode);
+    }
+
+    public void changeCookingButtonsVisibility(boolean visible) {
+        int visibility = visible ? View.VISIBLE : View.INVISIBLE;
+
+        cookingViewLayout = (LinearLayout) findViewById(R.id.cookingButtonsLayout);
+        progressTextView = (TextView) findViewById(R.id.progressText);
+        progressBar = (ProgressBar)findViewById(R.id.progressBar);
+
+        cookingViewLayout.setVisibility(visibility);
+        progressBar.setVisibility(visibility);
+        progressTextView.setVisibility(visibility);
+    }
+
     private void filtersButtonClick() {
         filtersButton = (Button) findViewById(R.id.buttonFilters);
         seekBarPrice = (SeekBar) findViewById(R.id.seekBarPrice);
+        categoriesFilter = (TextView) findViewById(R.id.categoriesFilter);
+        priceFilterText = (TextView) findViewById(R.id.filterPriceText);
         applyFiltersButton = (Button) findViewById(R.id.buttonApplyFilters);
 
         filtersButton.setOnClickListener(
@@ -236,12 +252,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     @Override
                     public void onClick(View v) {
-                        int visibility = View.VISIBLE;
-                        if (seekBarPrice.getVisibility() == View.VISIBLE ) {
-                            visibility = View.INVISIBLE;
+                        int visibility = View.INVISIBLE;
+                        if (seekBarPrice.getVisibility() == View.INVISIBLE ) {
+                            visibility = View.VISIBLE;
+                            int maxPrice = 0;
+                            int tempPrice;
+                            for(Map.Entry<Marker, CookingData> cooks : cookingDataMap.entrySet()) {
+                                CookingData cookData = cooks.getValue();
+
+                                tempPrice = cookData.getPrice();
+                                if (tempPrice > maxPrice)
+                                    maxPrice = tempPrice;
+                            }
+                            seekBarPrice.setMax(maxPrice);
+                            if (currentPriceInFilter < 0 || currentPriceInFilter > maxPrice)
+                                seekBarPrice.setProgress(maxPrice);
+                            priceFilterText.setText(Integer.toString(seekBarPrice.getProgress()));
                         }
 
                         seekBarPrice.setVisibility(visibility);
+                        categoriesFilter.setVisibility(visibility);
+                        priceFilterText.setVisibility(visibility);
                         applyFiltersButton.setVisibility(visibility);
                     }
                 }
@@ -250,6 +281,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void applyFiltersButtonClick() {
         seekBarPrice = (SeekBar) findViewById(R.id.seekBarPrice);
+        categoriesFilter = (TextView) findViewById(R.id.categoriesFilter);
+        priceFilterText = (TextView) findViewById(R.id.filterPriceText);
         applyFiltersButton = (Button) findViewById(R.id.buttonApplyFilters);
 
         applyFiltersButton.setOnClickListener(
@@ -260,7 +293,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         int visibility = View.INVISIBLE;
 
                         seekBarPrice.setVisibility(visibility);
+                        categoriesFilter.setVisibility(visibility);
+                        priceFilterText.setVisibility(visibility);
                         applyFiltersButton.setVisibility(visibility);
+
                         applyFilters(seekBarPrice.getProgress());
                     }
                 }
@@ -268,6 +304,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void applyFilters(int maxPrice) {
+
         for(Map.Entry<Marker, CookingData> cooks : cookingDataMap.entrySet()) {
             Marker cookMarker = cooks.getKey();
             CookingData cookData = cooks.getValue();
@@ -282,8 +319,97 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean satisfyFilters (CookingData cookData, int maxPrice) {
         if (maxPrice < cookData.getPrice())
             return false;
+        CharSequence cs;
+        boolean cats = false;
+        for (String c: cookData.getCategories()) {
+            cs = (CharSequence) c;
+            if (selectedCategories.get(cs)) {
+                cats = true;
+                break;
+            }
+        }
+        if (!cats) {
+            for(Map.Entry<CharSequence, Boolean> allCats : selectedCategories.entrySet()) {
+                if (allCats.getValue())
+                    return false;
+            }
+        }
+
         //TODO
         return true;
+    }
+
+    private void changePriceFilter() {
+        priceFilterText = (TextView) findViewById(R.id.filterPriceText);
+        seekBarPrice =(SeekBar) findViewById(R.id.seekBarPrice);
+        seekBarPrice.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress,boolean fromUser) {
+                if (fromUser)
+                    currentPriceInFilter = progress;
+                priceFilterText.setText(Integer.toString(progress));
+            }
+        });
+    }
+
+    private void initializeCategoriesFilter() {
+
+        selectedCategories = new HashMap<>();
+        CharSequence[] allCategories = FoodCategories.getNames();
+        for (CharSequence category : allCategories) {
+            selectedCategories.put(category, false);
+        }
+
+        categoriesInput = (EditText) findViewById(R.id.categoriesFilter);
+        categoriesInput.setOnClickListener(
+                new View.OnClickListener() {
+                    final CharSequence[] items = FoodCategories.getNames();
+                    final boolean[] marked = new boolean[items.length];
+                    @Override
+                    public void onClick(View v) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+                        builder.setMultiChoiceItems(items, marked, new DialogInterface.OnMultiChoiceClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                                CharSequence selectedCategory = items[which];
+                                selectedCategories.put(selectedCategory, isChecked);
+                            }
+                        });
+                        builder.setTitle("Categories");
+                        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                categoriesInput.setText("");
+                                for (int i = 0; i < marked.length; i++) {
+                                    if (marked[i]) {
+                                        String prev = categoriesInput.getText().toString();
+                                        if (prev.isEmpty()) {
+                                            categoriesInput.setText(items[i]);
+                                        } else {
+                                            categoriesInput.setText(prev + ", "+ items[i]);
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                        AlertDialog alert = builder.create();
+                        alert.show();
+                    }
+                }
+        );
+
+
     }
 
     private void customerLogic() {

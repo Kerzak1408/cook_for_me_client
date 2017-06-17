@@ -192,4 +192,8 @@
     </string-array>
     <string name="title_activity_ranking">RankingActivity</string>
     <string name="title_activity_ranking_activiry">RankingActiviry</string>
+    <string name="_0">0</string>
+    <string name="filters">Filters</string>
+    <string name="categories">Categories</string>
+    <string name="apply">Apply</string>
 </resources>
