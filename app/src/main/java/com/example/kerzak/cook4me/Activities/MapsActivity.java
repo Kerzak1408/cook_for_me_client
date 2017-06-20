@@ -30,10 +30,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.example.kerzak.cook4me.Enums.FoodCategories;
 import com.example.kerzak.cook4me.Listeners.CookButtonListener;
+import com.example.kerzak.cook4me.Listeners.DatePickerListener;
+import com.example.kerzak.cook4me.Listeners.TimePickerListener;
 import com.example.kerzak.cook4me.WebSockets.ClientThread;
 import com.example.kerzak.cook4me.WebSockets.CookingData;
 import com.google.android.gms.common.ConnectionResult;
@@ -52,6 +55,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.kerzak.cook4me.R;
 import com.google.gson.Gson;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -69,7 +74,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     SeekBar seekBarPrice;
     TextView categoriesFilter;
     TextView priceFilterText;
+    TextView priceTextInfoFilter;
+    Switch eatingThereSwitch;
+    TextView fromTextFilter;
+    EditText fromDateFilter;
+    EditText fromTimeFilter;
+    TextView toTeXtFilter;
+    EditText toDateFilter;
+    EditText toTimeFilter;
     int currentPriceInFilter;
+    boolean notOpenedFilter;
     Button applyFiltersButton;
     HashMap<CharSequence,Boolean> selectedCategories;
     EditText categoriesInput;
@@ -201,11 +215,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
         currentPriceInFilter = -1;
+        notOpenedFilter = true;
 
         filtersButtonClick();
         applyFiltersButtonClick();
         initializeCategoriesFilter();
         changePriceFilter();
+        initializeDatePickers();
+        initializeTimePickers();
 
         try {
             Thread.currentThread().sleep(1000);
@@ -245,6 +262,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         seekBarPrice = (SeekBar) findViewById(R.id.seekBarPrice);
         categoriesFilter = (TextView) findViewById(R.id.categoriesFilter);
         priceFilterText = (TextView) findViewById(R.id.filterPriceText);
+        priceTextInfoFilter = (TextView) findViewById(R.id.priceTextInfoFilter);
+        eatingThereSwitch = (Switch) findViewById(R.id.eatingThereSwitch);
+        fromTextFilter = (TextView) findViewById(R.id.dateFromTextFilter);
+        fromDateFilter = (EditText) findViewById(R.id.dateFromFilter);
+        fromTimeFilter = (EditText) findViewById(R.id.timeFromFilter);
+        toTeXtFilter = (TextView) findViewById(R.id.dateToTextFilter);
+        toDateFilter = (EditText) findViewById(R.id.dateToFilter);
+        fromDateFilter = (EditText) findViewById(R.id.timeToFilter);
         applyFiltersButton = (Button) findViewById(R.id.buttonApplyFilters);
 
         filtersButton.setOnClickListener(
@@ -264,6 +289,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 if (tempPrice > maxPrice)
                                     maxPrice = tempPrice;
                             }
+
+                            if (notOpenedFilter) {
+                                setDateAndTimePicker();
+                                notOpenedFilter = false;
+                            }
                             seekBarPrice.setMax(maxPrice);
                             if (currentPriceInFilter < 0 || currentPriceInFilter > maxPrice)
                                 seekBarPrice.setProgress(maxPrice);
@@ -273,6 +303,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         seekBarPrice.setVisibility(visibility);
                         categoriesFilter.setVisibility(visibility);
                         priceFilterText.setVisibility(visibility);
+                        priceTextInfoFilter.setVisibility(visibility);
+                        eatingThereSwitch.setVisibility(visibility);
+                        fromTextFilter.setVisibility(visibility);
+                        fromDateFilter.setVisibility(visibility);
+                        fromTimeFilter.setVisibility(visibility);
+                        toTeXtFilter.setVisibility(visibility);
+                        toDateFilter.setVisibility(visibility);
+                        toTimeFilter.setVisibility(visibility);
                         applyFiltersButton.setVisibility(visibility);
                     }
                 }
@@ -283,7 +321,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         seekBarPrice = (SeekBar) findViewById(R.id.seekBarPrice);
         categoriesFilter = (TextView) findViewById(R.id.categoriesFilter);
         priceFilterText = (TextView) findViewById(R.id.filterPriceText);
+        priceTextInfoFilter = (TextView) findViewById(R.id.priceTextInfoFilter);
+        eatingThereSwitch = (Switch) findViewById(R.id.eatingThereSwitch);
+        fromTextFilter = (TextView) findViewById(R.id.dateFromTextFilter);
+        fromDateFilter = (EditText) findViewById(R.id.dateFromFilter);
+        fromTimeFilter = (EditText) findViewById(R.id.timeFromFilter);
+        toTeXtFilter = (TextView) findViewById(R.id.dateToTextFilter);
+        toDateFilter = (EditText) findViewById(R.id.dateToFilter);
+        fromDateFilter = (EditText) findViewById(R.id.timeToFilter);
         applyFiltersButton = (Button) findViewById(R.id.buttonApplyFilters);
+
 
         applyFiltersButton.setOnClickListener(
                 new View.OnClickListener() {
@@ -295,29 +342,39 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         seekBarPrice.setVisibility(visibility);
                         categoriesFilter.setVisibility(visibility);
                         priceFilterText.setVisibility(visibility);
+                        priceTextInfoFilter.setVisibility(visibility);
+                        eatingThereSwitch.setVisibility(visibility);
+                        fromTextFilter.setVisibility(visibility);
+                        fromDateFilter.setVisibility(visibility);
+                        fromTimeFilter.setVisibility(visibility);
+                        toTeXtFilter.setVisibility(visibility);
+                        toDateFilter.setVisibility(visibility);
+                        toTimeFilter.setVisibility(visibility);
                         applyFiltersButton.setVisibility(visibility);
 
-                        applyFilters(seekBarPrice.getProgress());
+                        applyFilters(seekBarPrice.getProgress(), eatingThereSwitch.isChecked(), fromDateFilter.getText().toString(),
+                                fromTimeFilter.getText().toString(), toDateFilter.getText().toString(), toTimeFilter.getText().toString());
                     }
                 }
         );
     }
 
-    private void applyFilters(int maxPrice) {
-
+    private void applyFilters(int maxPrice, boolean eatingThere, String fromDate, String fromTime, String toDate, String toTime) {
         for(Map.Entry<Marker, CookingData> cooks : cookingDataMap.entrySet()) {
             Marker cookMarker = cooks.getKey();
             CookingData cookData = cooks.getValue();
 
-            if (satisfyFilters(cookData, maxPrice))
+            if (satisfyFilters(cookData, maxPrice, eatingThere, fromDate, fromTime, toDate, toTime))
                 cookMarker.setVisible(true);
             else
                 cookMarker.setVisible(false);
         }
     }
 
-    private boolean satisfyFilters (CookingData cookData, int maxPrice) {
+    private boolean satisfyFilters (CookingData cookData, int maxPrice, boolean eatingThere, String fromDate, String fromTime, String toDate, String toTime) {
         if (maxPrice < cookData.getPrice())
+            return false;
+        if (eatingThere == cookData.getTakeAwayOnly())
             return false;
         CharSequence cs;
         boolean cats = false;
@@ -335,7 +392,58 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
 
-        //TODO
+        String cookDataDateFrom = cookData.getDayFrom()+"."+cookData.getMonthFrom()+"."+cookData.getYearFrom();
+        String cookDataTimeFrom = cookData.getHourFrom()+":"+cookData.getMinuteFrom();
+
+        String cookDataDateTo = cookData.getDayTo()+"."+cookData.getMonthTo()+"."+cookData.getYearTo();
+        String cookDataTimeTo = cookData.getHourTo()+":"+cookData.getMinuteTo();
+
+        if (isFirstBeforeSecond(toDate, toTime, cookDataDateFrom, cookDataTimeFrom) || isFirstBeforeSecond(cookDataDateTo, cookDataTimeTo, fromDate, fromTime))
+            return false;
+        else
+            return true;
+    }
+
+    boolean isFirstBeforeSecond(String date1, String time1, String date2, String time2) {
+        int[] timeFirst = new int[5];
+        int[] timeSecond = new int[5];
+        String[] temp = date1.split("\\.");
+        for (int i=0; i<3; i++)
+            timeFirst[i] = Integer.parseInt(temp[i]);
+        temp = time1.split(":");
+        for (int i=0; i<2; i++)
+            timeFirst[i + 3] = Integer.parseInt(temp[i]);
+        temp = date2.split("\\.");
+        for (int i=0; i<3; i++)
+            timeSecond[i] = Integer.parseInt(temp[i]);
+        temp = time2.split(":");
+        for (int i=0; i<2; i++)
+            timeSecond[i + 3] = Integer.parseInt(temp[i]);
+
+        if (timeFirst[2] > timeSecond[2]) {
+            return false;
+        }
+        else if (timeSecond[2] == timeFirst[2]) {
+            if (timeFirst[1] > timeSecond[1]) {
+                return false;
+            }
+            else if (timeFirst[1] == timeSecond[1]) {
+                if (timeFirst[0] > timeSecond[0]) {
+                    return false;
+                }
+                else if (timeFirst[0] == timeSecond[0]) {
+                    if (timeFirst[3] > timeSecond[3]) {
+                        return false;
+                    }
+                    else if (timeFirst[3] == timeSecond[3]) {
+                        if (timeFirst[4] >= timeSecond[4]) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
         return true;
     }
 
@@ -824,5 +932,68 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             loggerView.setText("onMapClick REGISTERED=" + registered);
         }
         selectedMarker = null;
+    }
+
+    private void initializeDatePickers() {
+        fromDateFilter = (EditText) findViewById(R.id.dateFromFilter);
+        toDateFilter = (EditText) findViewById(R.id.dateToFilter);
+        fromDateFilter.setOnClickListener(new DatePickerListener(fromDateFilter,MapsActivity.this));
+        toDateFilter.setOnClickListener(new DatePickerListener(toDateFilter,MapsActivity.this));
+    }
+
+    private void initializeTimePickers() {
+        fromTimeFilter = (EditText) findViewById(R.id.timeFromFilter);
+        toTimeFilter = (EditText) findViewById(R.id.timeToFilter);
+        fromTimeFilter.setOnClickListener(new TimePickerListener(fromTimeFilter, MapsActivity.this));
+        toTimeFilter.setOnClickListener(new TimePickerListener(toTimeFilter, MapsActivity.this));
+    }
+
+    private void setDateAndTimePicker() {
+        fromDateFilter = (EditText) findViewById(R.id.dateFromFilter);
+        toDateFilter = (EditText) findViewById(R.id.dateToFilter);
+        fromTimeFilter = (EditText) findViewById(R.id.timeFromFilter);
+        toTimeFilter = (EditText) findViewById(R.id.timeToFilter);
+        String tempDateFrom;
+        String tempTimeFrom;
+        String minDate = "";
+        String minTime = "aa";
+        String tempDateTo;
+        String tempTimeTo;
+        String maxDate = "bb";
+        String maxTime = "cc";
+        boolean start = true;
+        for(Map.Entry<Marker, CookingData> cooks : cookingDataMap.entrySet()) {
+            Marker marker = cooks.getKey();
+            CookingData cookData = cooks.getValue();
+
+            tempDateFrom = cookData.getDayFrom()+"."+cookData.getMonthFrom()+"."+cookData.getYearFrom();
+            tempTimeFrom = cookData.getHourFrom()+":"+cookData.getMinuteFrom();
+            tempDateTo = cookData.getDayTo()+"."+cookData.getMonthTo()+"."+cookData.getYearTo();
+            tempTimeTo = cookData.getHourTo()+":"+cookData.getMinuteTo();
+            if (start) {
+                minDate = tempDateFrom;
+                minTime = tempTimeFrom;
+                maxDate = tempDateTo;
+                maxTime = tempTimeTo;
+                start = false;
+            }
+            else {
+                if (isFirstBeforeSecond(tempDateFrom, tempTimeFrom, minDate, minTime)) {
+                    minDate = tempDateFrom;
+                    minTime = tempTimeFrom;
+                }
+                if (isFirstBeforeSecond(maxDate, maxTime, tempDateTo, tempTimeTo)) {
+                    maxDate = tempDateTo;
+                    maxTime = tempTimeTo;
+                }
+            }
+        }
+
+        if (!start) {
+            fromDateFilter.setText(minDate);
+            fromTimeFilter.setText(minTime);
+            toDateFilter.setText(maxDate);
+            toTimeFilter.setText(maxTime);
+        }
     }
 }
