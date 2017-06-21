@@ -374,7 +374,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean satisfyFilters (CookingData cookData, int maxPrice, boolean eatingThere, String fromDate, String fromTime, String toDate, String toTime) {
         if (maxPrice < cookData.getPrice())
             return false;
-        if (eatingThere == cookData.getTakeAwayOnly())
+        if (eatingThere && cookData.getTakeAwayOnly())
             return false;
         CharSequence cs;
         boolean cats = false;
@@ -508,6 +508,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                             categoriesInput.setText(prev + ", "+ items[i]);
                                         }
                                     }
+                                }
+                                // if no categories were chose
+                                if ("".equals(categoriesInput.getText().toString())) {
+                                    categoriesInput.setText("Categories");
                                 }
                             }
                         });
