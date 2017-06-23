@@ -14,14 +14,12 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Switch;
 
+import com.example.kerzak.cook4me.DataStructures.CookingData;
 import com.example.kerzak.cook4me.Enums.FoodCategories;
 import com.example.kerzak.cook4me.Listeners.DatePickerListener;
 import com.example.kerzak.cook4me.Listeners.TextMaxLengthListener;
 import com.example.kerzak.cook4me.Listeners.TimePickerListener;
 import com.example.kerzak.cook4me.R;
-import com.example.kerzak.cook4me.WebSockets.Client;
-import com.example.kerzak.cook4me.WebSockets.CookingData;
-import com.example.kerzak.cook4me.WebSockets.SimpleSocketClient;
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;

@@ -100,7 +100,8 @@ android:layout_height="match_parent">
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:weightSum="1">
+        android:weightSum="1"
+        android:id="@+id/linearLayout">
         <LinearLayout
             android:id="@+id/filterLayout"
             android:layout_width="0dp"
@@ -245,19 +246,21 @@ android:layout_height="match_parent">
         android:id="@+id/registerButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
         android:text="Register"
-        android:visibility="invisible" />
+        android:visibility="invisible"
+        android:layout_below="@+id/linearLayout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="33dp" />
 
     <RatingBar
         android:id="@+id/ratingBar"
+        android:isIndicator="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="16dp"
-        android:visibility="invisible" />
+        android:visibility="invisible"/>
 
 
 </RelativeLayout>

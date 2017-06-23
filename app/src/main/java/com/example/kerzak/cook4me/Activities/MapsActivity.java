@@ -7,7 +7,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -29,16 +31,17 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RatingBar;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.example.kerzak.cook4me.DataStructures.CookingData;
 import com.example.kerzak.cook4me.Enums.FoodCategories;
 import com.example.kerzak.cook4me.Listeners.CookButtonListener;
 import com.example.kerzak.cook4me.Listeners.DatePickerListener;
 import com.example.kerzak.cook4me.Listeners.TimePickerListener;
 import com.example.kerzak.cook4me.WebSockets.ClientThread;
-import com.example.kerzak.cook4me.WebSockets.CookingData;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
@@ -67,7 +70,6 @@ import java.util.Map;
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnMapClickListener {
 
     HashMap<String, Marker> cooks;
-
     HashMap<Marker, CookingData> cookingDataMap;
 
     Button filtersButton;
@@ -82,12 +84,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     TextView toTeXtFilter;
     EditText toDateFilter;
     EditText toTimeFilter;
+    EditText categoriesInput;
+    RatingBar ratingBar;
+
     int currentPriceInFilter;
     boolean notOpenedFilter;
     Button applyFiltersButton;
     HashMap<CharSequence,Boolean> selectedCategories;
-    EditText categoriesInput;
-    private static final String SERVER = "ws://echo.websocket.org";
+
 
     /**
      * The timeout value in milliseconds for socket connection.
@@ -105,7 +109,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private List<CookingData> cookingDataList;
 
-    com.example.kerzak.cook4me.WebSockets.Client client;
 
     LinearLayout cookingViewLayout;
     TextView progressTextView;
@@ -223,7 +226,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         changePriceFilter();
         initializeDatePickers();
         initializeTimePickers();
-
+        ratingBar = (RatingBar) findViewById(R.id.ratingBar);
+        Drawable drawable = ratingBar.getProgressDrawable();
+        drawable.setColorFilter(Color.parseColor("#E74C3C"), PorterDuff.Mode.SRC_ATOP);
         try {
             Thread.currentThread().sleep(1000);
         } catch (InterruptedException e) {
@@ -570,6 +575,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     cooks.put(data.getLogin(), newMarker);
                     cookingDataMap.put(newMarker, data);
                     refreshSnippet(newMarker, false);
+
                 }
 
 
@@ -921,7 +927,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             refreshSnippet(marker, false);
             selectedMarker.showInfoWindow();
             registerButton = (Button) findViewById(R.id.registerButton);
-
+            ratingBar.setVisibility(View.VISIBLE);
+            CookingData cookingData = cookingDataMap.get(marker);
+            ratingBar.setRating(cookingData.getRanking());
         }
         return true;
     }
@@ -931,6 +939,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapClick(LatLng latLng) {
         registerButton = (Button) findViewById(R.id.registerButton);
         registerButton.setVisibility(View.INVISIBLE);
+        ratingBar.setVisibility(View.INVISIBLE);
         if (selectedMarker != null && !registered) {
             selectedMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
             loggerView.setText("onMapClick REGISTERED=" + registered);

@@ -3,6 +3,8 @@ package com.example.kerzak.cook4me.WebSockets;
 import android.os.Handler;
 import android.os.Message;
 
+import com.example.kerzak.cook4me.DataStructures.CookingData;
+import com.example.kerzak.cook4me.Serialization.GsonTon;
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
@@ -51,7 +53,7 @@ public class ClientThread extends Thread {
                 String[] splitMsg = line.split("#");
                 Message msg = new Message();
                 if ("cook".equals(splitMsg[0])){
-                    Gson gson = new Gson();
+                    Gson gson = GsonTon.getInstance().getGson();
 
                     CookingData cookingData = gson.fromJson(splitMsg[1],CookingData.class);
 
