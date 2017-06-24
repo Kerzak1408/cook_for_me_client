@@ -3,6 +3,7 @@ package com.example.kerzak.cook4me.WebSockets;
 import android.os.Handler;
 import android.os.Message;
 
+import com.example.kerzak.cook4me.Activities.LoginActivity;
 import com.example.kerzak.cook4me.DataStructures.CookingData;
 import com.example.kerzak.cook4me.Serialization.GsonTon;
 import com.google.gson.Gson;
@@ -26,12 +27,10 @@ public class ClientThread extends Thread {
     private BufferedWriter writer;
     private BufferedReader reader;
     private Socket socket;
-    private String myLogin;
 
-    public ClientThread(Handler handler, String myLogin) {
+    public ClientThread(Handler handler) {
 
         this.handler = handler;
-        this.myLogin = myLogin;
     }
 
 
@@ -43,7 +42,7 @@ public class ClientThread extends Thread {
 
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 
-            writer.write("login#" +  myLogin + "\n");
+            writer.write("login#" + LoginActivity.email + "\n");
             writer.flush();
             // Get input buffer
             reader = new BufferedReader(

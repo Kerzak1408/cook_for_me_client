@@ -156,4 +156,20 @@ public class CookingData implements Serializable {
     public float getRanking() {
         return ranking;
     }
+
+    public String getDateFromString() {
+        return String.format("%02d", dayFrom) + "." + String.format("%02d", monthFrom) + "." + yearFrom;
+    }
+
+    public String getDateToString() {
+        return String.format("%02d", dayTo) + "." + String.format("%02d", monthTo) + "." + yearTo;
+    }
+
+    public String getTimeFromString() {
+        return String.format("%02d", hourFrom) + ":" + String.format("%02d", minuteFrom);
+    }
+
+    public String getTimeToString() {
+        return String.format("%02d", hourTo) + ":" + String.format("%02d", minuteTo);
+    }
 }

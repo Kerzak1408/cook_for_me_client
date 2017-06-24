@@ -41,6 +41,7 @@ import com.example.kerzak.cook4me.Enums.FoodCategories;
 import com.example.kerzak.cook4me.Listeners.CookButtonListener;
 import com.example.kerzak.cook4me.Listeners.DatePickerListener;
 import com.example.kerzak.cook4me.Listeners.TimePickerListener;
+import com.example.kerzak.cook4me.Serialization.GsonTon;
 import com.example.kerzak.cook4me.WebSockets.ClientThread;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -86,6 +87,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     EditText toTimeFilter;
     EditText categoriesInput;
     RatingBar ratingBar;
+    Button editCookingButton;
 
     int currentPriceInFilter;
     boolean notOpenedFilter;
@@ -129,7 +131,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     String totalPortions= "";
 
     private ClientThread clientThread;
-//    private CustomerThread customerThread;
 
     private boolean cookMode = false;
     private boolean registered = false;
@@ -169,20 +170,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         cookButton = (ImageButton) findViewById(R.id.cookButton);
         cookButton.setOnClickListener(new CookButtonListener(this));
-        cookButton.setVisibility(View.INVISIBLE);
-        Bundle extras = getIntent().getExtras();
-        json = getIntent().getStringExtra("json");
-        login = LoginActivity.email;
-        cookMode = false;
-        if (json != null) {
-            switchCookMode();
-        }
+
         changeCookingButtonsVisibility(false);
         loggerView = (TextView) findViewById(R.id.logger);
 
 
 
-        clientThread = new ClientThread(serverMessageHandler, login);
+        clientThread = new ClientThread(serverMessageHandler);
         clientThread.start();
 
         registerButton = (Button) findViewById(R.id.registerButton);
@@ -226,14 +220,34 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         changePriceFilter();
         initializeDatePickers();
         initializeTimePickers();
+        editCookingButtonClick();
         ratingBar = (RatingBar) findViewById(R.id.ratingBar);
         Drawable drawable = ratingBar.getProgressDrawable();
         drawable.setColorFilter(Color.parseColor("#E74C3C"), PorterDuff.Mode.SRC_ATOP);
+
+        Bundle extras = getIntent().getExtras();
+        json = getIntent().getStringExtra("json");
+        login = LoginActivity.email;
+        cookMode = false;
+        if (json != null) {
+            switchCookMode();
+        }
+
         try {
             Thread.currentThread().sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private void editCookingButtonClick() {
+        editCookingButton = (Button) findViewById(R.id.editCooking);
+        editCookingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                loadCookMode(true);
+            }
+        });
     }
 
 
@@ -242,12 +256,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         cookingViewLayout = (LinearLayout) findViewById(R.id.cookingButtonsLayout);
         progressTextView = (TextView) findViewById(R.id.progressText);
         progressBar = (ProgressBar)findViewById(R.id.progressBar);
+        filtersButton = (Button) findViewById(R.id.buttonFilters);
+        int visibility = View.VISIBLE;
         if (cookMode) {
-            cookButton.setImageResource(R.drawable.eat);
+//            cookButton.setImageResource(R.drawable.eat);
+            visibility = View.INVISIBLE;
         } else {
-            cookButton.setImageResource(R.drawable.cook_hat);
+//            cookButton.setImageResource(R.drawable.cook_hat);
         }
-        changeCookingButtonsVisibility(cookMode);
+        filtersButton.setVisibility(visibility);
+        cookButton.setVisibility(visibility);
+//        changeCookingButtonsVisibility(cookMode);
     }
 
     public void changeCookingButtonsVisibility(boolean visible) {
@@ -584,9 +603,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             else if (msg.arg1 == 1) {
                 String login = (String) msg.obj;
                 if (cookMode && myCookingData != null && myCookingData.getLogin().equals(login)) {
-                    myCookingData = null;
-                    if (myMarker != null) myMarker.remove();
-                    loadEatMode();
+//                    myCookingData = null;
+//                    if (myMarker != null) myMarker.remove();
+//                    loadEatMode();
                 } else {
                     Marker toBeRemoved = cooks.get(login);
 //                    loggerView.setText("is marker null:" + (toBeRemoved == null));
@@ -783,14 +802,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.setOnMapClickListener(this);
 
         setInfoAdapter();
-        cookButton.setVisibility(View.VISIBLE);
+
 
         if (cookMode) {
             markerImage = (ImageView) findViewById(R.id.markerImage);
             markerImage.setVisibility(View.VISIBLE);
             confirmLocationButton = (Button) findViewById(R.id.confirmLocation);
             confirmLocationButton.setVisibility(View.VISIBLE);
-            cookButton.setVisibility(View.INVISIBLE);
             confirmLocationButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -801,7 +819,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     markerImage.setVisibility(View.INVISIBLE);
                     confirmLocationButton.setVisibility(View.INVISIBLE);
                     cookButton = (ImageButton) findViewById(R.id.cookButton);
-                    cookButton.setVisibility(View.VISIBLE);
+//                    cookButton.setVisibility(View.VISIBLE);
                     changeCookingButtonsVisibility(true);
 
                     cookLogic(latLng);
@@ -868,17 +886,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public void loadCookMode() {
-//        switchCookMode();
+    public void loadCookMode(boolean edit) {
         if (mLocation != null ) {
-//            LatLng latLng = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
-//            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
-//            cookButton.setImageResource(R.drawable.eat);
-//            whereAmI=mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(
-//                    BitmapDescriptorFactory.HUE_GREEN)));
+
             finish();
             Intent myIntent = new Intent(MapsActivity.this,CookingInfoActivity.class);
             myIntent.putExtra("login",login);
+            if (edit) {
+                Gson gson = GsonTon.getInstance().getGson();
+                String json = gson.toJson(myCookingData);
+                myIntent.putExtra("json",json);
+            }
             MapsActivity.this.startActivity(myIntent);
         }
 

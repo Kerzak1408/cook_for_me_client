@@ -22,7 +22,7 @@ public class CookButtonListener implements View.OnClickListener {
         if (mapsActivity.isInCookMode()) {
             mapsActivity.loadEatMode();
         } else {
-            mapsActivity.loadCookMode();
+            mapsActivity.loadCookMode(false);
         }
     }
 

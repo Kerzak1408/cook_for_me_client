@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -20,23 +19,14 @@ import com.example.kerzak.cook4me.Listeners.DatePickerListener;
 import com.example.kerzak.cook4me.Listeners.TextMaxLengthListener;
 import com.example.kerzak.cook4me.Listeners.TimePickerListener;
 import com.example.kerzak.cook4me.R;
+import com.example.kerzak.cook4me.Serialization.GsonTon;
 import com.google.gson.Gson;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.Inet4Address;
-import java.net.Socket;
-import java.net.SocketAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import static android.R.attr.data;
 
 public class CookingInfoActivity extends AppCompatActivity {
 
@@ -54,6 +44,11 @@ public class CookingInfoActivity extends AppCompatActivity {
     HashMap<CharSequence,Boolean> selectedCategories;
     public static CookingData thisCookingData;
     String login = null;
+    private CookingData previousCookingData = null;
+    Switch takeAwaySwitch;
+    List<String> spinnerArray;
+    Spinner currencySpinner;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,8 +65,41 @@ public class CookingInfoActivity extends AppCompatActivity {
         initializePriceInput();
         initializeNotesInput();
         initializeCategories();
+        takeAwaySwitch = (Switch) findViewById(R.id.takeAwaySwitch);
 
-        login = getIntent().getStringExtra("login");
+        Intent intent = getIntent();
+        login = intent.getStringExtra("login");
+        String json = intent.getStringExtra("json");
+        if (json != null) {
+            previousCookingData = GsonTon.getInstance().getGson().fromJson(json, CookingData.class);
+        }
+
+        if (previousCookingData != null) {
+            setPreviousValues();
+        }
+    }
+
+    private void setPreviousValues() {
+        foodNameInput.setText(previousCookingData.getName());
+        List<String> categoriesList = previousCookingData.getCategories();
+        String categories = "";
+        for (int i = 0; i < categoriesList.size(); i++) {
+            categories += categoriesList.get(i);
+            if (i != categoriesList.size() - 1) {
+                categories += ", ";
+            }
+        }
+        categoriesInput.setText(categories);
+        datePickerInput.setText(previousCookingData.getDateFromString());
+        datePickerInput2.setText(previousCookingData.getDateToString());
+        timePickerInput.setText(previousCookingData.getTimeFromString());
+        timePickerInput2.setText(previousCookingData.getTimeToString());
+        portionsCountInput.setText(String.valueOf(previousCookingData.getPortions()));
+        takeAwaySwitch.setChecked(previousCookingData.getTakeAwayOnly());
+        priceInput.setText(String.valueOf(previousCookingData.getPrice()));
+        int indexCurrency = spinnerArray.indexOf(previousCookingData.getCurrency());
+        currencySpinner.setSelection(indexCurrency);
+        notesInput.setText(previousCookingData.getNotes());
     }
 
     private void initializeCategories() {
@@ -247,7 +275,7 @@ public class CookingInfoActivity extends AppCompatActivity {
                                         Integer.parseInt(portionsCountInput.getText().toString()), takeAway,
                                         Integer.parseInt(priceInput.getText().toString()), notesInput.getText().toString(), currency);
                                 thisCookingData.setLogin(login);
-                                Gson gson = new Gson();
+                                Gson gson = GsonTon.getInstance().getGson();
                                 String json = gson.toJson(CookingInfoActivity.thisCookingData );
 
                                 Intent myIntent = new Intent(CookingInfoActivity.this,MapsActivity.class);
@@ -268,7 +296,7 @@ public class CookingInfoActivity extends AppCompatActivity {
 
     private void initializeCurrencySpinner() {
 
-        List<String> spinnerArray =  new ArrayList<String>();
+        spinnerArray =  new ArrayList<String>();
         spinnerArray.add("EUR");
         spinnerArray.add("USD");
         spinnerArray.add("CZK");
@@ -277,8 +305,8 @@ public class CookingInfoActivity extends AppCompatActivity {
                 this, android.R.layout.simple_spinner_item, spinnerArray);
 
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        Spinner sItems = (Spinner) findViewById(R.id.currencySpinner);
-        sItems.setAdapter(adapter);
+        currencySpinner = (Spinner) findViewById(R.id.currencySpinner);
+        currencySpinner.setAdapter(adapter);
     }
 
     private void initializeDatePickers() {
