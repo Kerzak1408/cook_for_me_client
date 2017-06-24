@@ -66,6 +66,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnMapClickListener {
@@ -176,8 +177,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
 
-        clientThread = new ClientThread(serverMessageHandler);
-        clientThread.start();
+        clientThread = ClientThread.getInstance(serverMessageHandler);
 
         registerButton = (Button) findViewById(R.id.registerButton);
 
@@ -259,14 +259,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         filtersButton = (Button) findViewById(R.id.buttonFilters);
         int visibility = View.VISIBLE;
         if (cookMode) {
-//            cookButton.setImageResource(R.drawable.eat);
             visibility = View.INVISIBLE;
-        } else {
-//            cookButton.setImageResource(R.drawable.cook_hat);
         }
         filtersButton.setVisibility(visibility);
         cookButton.setVisibility(visibility);
-//        changeCookingButtonsVisibility(cookMode);
+
+        changeCookingButtonsVisibility(false);
     }
 
     public void changeCookingButtonsVisibility(boolean visible) {
@@ -621,9 +619,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                     }
                 }
-
-
-
             }
             // CLEAR MAP
             else if (msg.arg1 == 2){
@@ -645,7 +640,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     cooksData.setRegisteredCooks(numberOfEaters);
                     refreshSnippet(cooksMarker, false);
                 }
-
+            }
+            // I am cooking already
+            else if (msg.arg1 == 4) {
+                String[] splitMsg = (String[]) msg.obj;
+                int customersCount = Integer.parseInt(splitMsg[1]);
+                myCookingData = GsonTon.getInstance().getGson().fromJson(splitMsg[3], CookingData.class);
+                cookMode = false;
+                switchCookMode();
+                changeCookingButtonsVisibility(true);
+                progressBar.setProgress(customersCount);
+                myMarker = cooks.get(LoginActivity.email);
+                myMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
             }
 
         }
@@ -819,7 +825,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     markerImage.setVisibility(View.INVISIBLE);
                     confirmLocationButton.setVisibility(View.INVISIBLE);
                     cookButton = (ImageButton) findViewById(R.id.cookButton);
-//                    cookButton.setVisibility(View.VISIBLE);
+                    cookButton.setVisibility(View.VISIBLE);
                     changeCookingButtonsVisibility(true);
 
                     cookLogic(latLng);
@@ -875,10 +881,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Intent myIntent;
         switch (item.getItemId()) {
             case R.id.rank:
-                Intent myIntent = new Intent(MapsActivity.this,SearchUserActivity.class);
+                myIntent = new Intent(MapsActivity.this,SearchUserActivity.class);
                 myIntent.putExtra("login",login);
+                MapsActivity.this.startActivity(myIntent);
+                return true;
+            case R.id.logout:
+                clientThread.logout();
+                myIntent = new Intent(MapsActivity.this,LoginActivity.class);
                 MapsActivity.this.startActivity(myIntent);
                 return true;
             default:

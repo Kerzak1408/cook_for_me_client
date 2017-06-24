@@ -22,15 +22,25 @@ import java.net.UnknownHostException;
 
 public class ClientThread extends Thread {
 
+
 //    private String completeJSON;
     private Handler handler;
     private BufferedWriter writer;
     private BufferedReader reader;
     private Socket socket;
 
-    public ClientThread(Handler handler) {
+    public static ClientThread instance = null;
 
+    private ClientThread(Handler handler) {
         this.handler = handler;
+    }
+
+    public static ClientThread getInstance(Handler handler) {
+        if (instance == null) {
+            instance = new ClientThread(handler);
+            instance.start();
+        }
+        return instance;
     }
 
 
@@ -65,6 +75,9 @@ public class ClientThread extends Thread {
                 } else if ("registered".equals(splitMsg[0])){
                     msg.arg1 = 3;
                     msg.obj = splitMsg;
+                } else if ("youcook".equals(splitMsg[0])) {
+                    msg.arg1 = 4;
+                    msg.obj = splitMsg;
                 }
                 handler.sendMessage(msg);
             }
@@ -97,5 +110,10 @@ public class ClientThread extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void logout() {
+        writeLine("logout");
+        instance = null;
     }
 }

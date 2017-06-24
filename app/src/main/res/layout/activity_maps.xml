@@ -43,16 +43,6 @@ android:layout_height="match_parent">
         android:text="Confirm location"
         android:visibility="invisible" />
 
-    <TextView
-        android:id="@+id/logger"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:text="Log"
-        android:textSize="18sp" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -251,6 +241,14 @@ android:layout_height="match_parent">
         android:layout_below="@+id/linearLayout"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="33dp" />
+
+    <TextView
+        android:id="@+id/logger"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/progressBar"
+        android:text="Log"
+        android:textSize="18sp" />
 
     <RatingBar
         android:id="@+id/ratingBar"
