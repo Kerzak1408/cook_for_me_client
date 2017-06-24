@@ -180,6 +180,11 @@ public class CookingInfoActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         Intent myIntent = new Intent(CookingInfoActivity.this,MapsActivity.class);
+                        if (previousCookingData != null) {
+                            String json = GsonTon.getInstance().getGson().toJson(previousCookingData);
+                            myIntent.putExtra("json", json);
+                        }
+
                         finish();
                         CookingInfoActivity.this.startActivity(myIntent);
                     }
