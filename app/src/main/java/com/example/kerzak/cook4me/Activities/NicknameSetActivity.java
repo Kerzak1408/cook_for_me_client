@@ -120,7 +120,7 @@ public class NicknameSetActivity extends AppCompatActivity {
             HttpURLConnection urlConnection = null;
 
             try {
-                url = new URL("http://192.168.179.94:8090/setnickname?name=" + mEmail + "&pass=" + mPassword + "&nickname=" + mNickname);
+                url = new URL("http://" + LoginActivity.SERVER_IP + ":8090/setnickname?name=" + mEmail + "&pass=" + mPassword + "&nickname=" + mNickname);
 
                 urlConnection = (HttpURLConnection) url.openConnection();
 

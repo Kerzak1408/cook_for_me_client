@@ -1,4 +1,4 @@
-package com.example.kerzak.cook4me.WebSockets;
+package com.example.kerzak.cook4me.Sockets;
 
 import android.os.Handler;
 import android.os.Message;
@@ -53,7 +53,7 @@ public class ClientThread extends Thread {
     public void run() {
         try {
             // Create Socket instance
-            socket = new Socket("192.168.179.94", 6666);
+            socket = new Socket(LoginActivity.SERVER_IP, 6666);
 
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 

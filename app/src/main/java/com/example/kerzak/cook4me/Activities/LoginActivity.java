@@ -55,9 +55,11 @@ import static android.Manifest.permission.READ_CONTACTS;
  */
 public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
 
+    public static final String SERVER_IP = "192.168.179.94";
     public static String nickname = "";
     public static String email = "";
     public static String password = "";
+
     /**
      * Id to identity READ_CONTACTS permission request.
      */
@@ -395,7 +397,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             HttpURLConnection urlConnection = null;
 
             try {
-                url = new URL("http://192.168.179.94:8090/register?name=" + mEmail + "&pass=" + mPassword);
+                url = new URL("http://" + SERVER_IP + ":8090/register?name=" + mEmail + "&pass=" + mPassword);
 
                 urlConnection = (HttpURLConnection) url.openConnection();
 

@@ -10,14 +10,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.IntegerRes;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -28,10 +22,9 @@ import android.widget.TextView;
 import com.example.kerzak.cook4me.DataStructures.Ranking;
 import com.example.kerzak.cook4me.R;
 import com.example.kerzak.cook4me.Serialization.GsonTon;
-import com.example.kerzak.cook4me.WebSockets.ClientThread;
+import com.example.kerzak.cook4me.Sockets.ClientThread;
 import com.google.gson.Gson;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -225,7 +218,7 @@ public class RankingActivity extends ListActivity {
             HttpURLConnection urlConnection = null;
 
             try {
-                url = new URL("http://192.168.179.94:8090/updateuserranking?name=" + LoginActivity.email + "&pass=" + LoginActivity.password +
+                url = new URL("http://" + LoginActivity.SERVER_IP + ":8090/updateuserranking?name=" + LoginActivity.email + "&pass=" + LoginActivity.password +
                         "&cook=" + cook + "&stars=" + stars);
 
                 urlConnection = (HttpURLConnection) url.openConnection();
