@@ -69,6 +69,7 @@ public class RankingActivity extends ListActivity {
     private View mProgressView;
     private View mRankingView;
     Button updateRanking;
+    String json;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +82,7 @@ public class RankingActivity extends ListActivity {
 
         Bundle extras = getIntent().getExtras();
         cookName = extras.getString("name");
+        json = extras.getString("json");
         TextView nameTextView = (TextView) findViewById(R.id.userNameTextView);
         nameTextView.setText(cookName);
         rankingTextView = (TextView) findViewById(R.id.rankingOfUserTextView);
@@ -136,6 +138,9 @@ public class RankingActivity extends ListActivity {
     @Override
     public void onBackPressed() {
         Intent myIntent = new Intent(RankingActivity.this,SearchUserActivity.class);
+        if (json != null) {
+            myIntent.putExtra("json", json);
+        }
         RankingActivity.this.startActivity(myIntent);
     }
 

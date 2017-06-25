@@ -289,6 +289,7 @@ public class CookingInfoActivity extends AppCompatActivity {
                                 Intent myIntent = new Intent(CookingInfoActivity.this,MapsActivity.class);
                                 myIntent.putExtra("json",json);
                                 myIntent.putExtra("login",login);
+                                myIntent.putExtra("edited", true);
                                 finish();
                                 CookingInfoActivity.this.startActivity(myIntent);
 

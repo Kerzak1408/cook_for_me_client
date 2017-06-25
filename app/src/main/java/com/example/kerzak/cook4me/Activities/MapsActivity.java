@@ -257,6 +257,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         progressTextView = (TextView) findViewById(R.id.progressText);
         progressBar = (ProgressBar)findViewById(R.id.progressBar);
         filtersButton = (Button) findViewById(R.id.buttonFilters);
+        boolean edited = getIntent().getBooleanExtra("edited", false);
         int visibility = View.VISIBLE;
         if (cookMode) {
             visibility = View.INVISIBLE;
@@ -264,7 +265,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         filtersButton.setVisibility(visibility);
         cookButton.setVisibility(visibility);
 
-        changeCookingButtonsVisibility(false);
+        changeCookingButtonsVisibility(!edited);
     }
 
     public void changeCookingButtonsVisibility(boolean visible) {
@@ -561,21 +562,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-    private void cookLogic(LatLng latLng) {
-        json = getIntent().getStringExtra("json");
-        CookingData deserialized = gson.fromJson(json, CookingData.class);
-        deserialized.setLocation(latLng);
-        deserialized.setLogin(login);
-        myCookingData = deserialized;
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        progressBar.setMax(myCookingData.getPortions());
-        progressBar.setProgress(myCookingData.getPortions() - myCookingData.getAvailablePortions());
-        final String completeJSON = gson.toJson(deserialized);
-        totalPortions = String.valueOf(myCookingData.getPortions());
-        clientThread.writeLine("cook#" + completeJSON);
-    }
-
-
     private Marker myMarker;
     // Define Handler object
     private Handler serverMessageHandler = new Handler() {
@@ -818,21 +804,29 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             markerImage = (ImageView) findViewById(R.id.markerImage);
             markerImage.setVisibility(View.VISIBLE);
             confirmLocationButton = (Button) findViewById(R.id.confirmLocation);
-            confirmLocationButton.setVisibility(View.VISIBLE);
+
+            if (getIntent().getBooleanExtra("edited",false)) {
+                confirmLocationButton.setVisibility(View.VISIBLE);
+            } else {
+                myCookingData =
+                        GsonTon.getInstance()
+                                .getGson()
+                                .fromJson(getIntent().getStringExtra("json"), CookingData.class);
+                loadCookingMode(myCookingData.getLocation());
+            }
+
             confirmLocationButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mMap.clear();
                     LatLng latLng = mMap.getCameraPosition().target;
-                    myMarker=mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(
-                            BitmapDescriptorFactory.HUE_GREEN)));
-                    markerImage.setVisibility(View.INVISIBLE);
-                    confirmLocationButton.setVisibility(View.INVISIBLE);
-                    cookButton = (ImageButton) findViewById(R.id.cookButton);
-                    cookButton.setVisibility(View.VISIBLE);
-                    changeCookingButtonsVisibility(true);
-
-                    cookLogic(latLng);
+                    json = getIntent().getStringExtra("json");
+                    myCookingData = gson.fromJson(json, CookingData.class);
+                    myCookingData.setLocation(latLng);
+                    myCookingData.setLogin(login);
+                    final String completeJSON = gson.toJson(myCookingData);
+                    totalPortions = String.valueOf(myCookingData.getPortions());
+                    loadCookingMode(latLng);
+                    clientThread.writeLine("cook#" + completeJSON);
 
                 }
             });
@@ -840,6 +834,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //            loggerView.setText("522 cl");
 //            customerLogic();
         }
+    }
+
+    private void loadCookingMode(LatLng myPos) {
+        mMap.clear();
+        LatLng latLng = myPos;
+        myMarker=mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(
+                BitmapDescriptorFactory.HUE_GREEN)));
+        markerImage.setVisibility(View.INVISIBLE);
+        confirmLocationButton.setVisibility(View.INVISIBLE);
+        cookButton = (ImageButton) findViewById(R.id.cookButton);
+        cookButton.setVisibility(View.VISIBLE);
+        changeCookingButtonsVisibility(true);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar.setMax(myCookingData.getPortions());
+        progressBar.setProgress(myCookingData.getPortions() - myCookingData.getAvailablePortions());
+        cookButton.setVisibility(View.INVISIBLE);
     }
 
     private void setInfoAdapter() {
@@ -890,6 +900,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.rank:
                 myIntent = new Intent(MapsActivity.this,SearchUserActivity.class);
                 myIntent.putExtra("login",login);
+                if (cookMode) {
+                    String json = GsonTon.getInstance().getGson().toJson(myCookingData);
+                    myIntent.putExtra("json", json);
+                }
                 MapsActivity.this.startActivity(myIntent);
                 return true;
             case R.id.logout:

@@ -40,6 +40,8 @@ public class SearchUserActivity extends ListActivity  {
 
     String myLogin;
 
+    String json;
+
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
@@ -76,15 +78,22 @@ public class SearchUserActivity extends ListActivity  {
                 Intent myIntent = new Intent(SearchUserActivity.this,RankingActivity.class);
                 String name = (String)parent.getItemAtPosition(position);
                 myIntent.putExtra("name", name);
+                if (json != null) {
+                    myIntent.putExtra("json", json);
+                }
                 SearchUserActivity.this.startActivity(myIntent);
             }
         });
+        json = getIntent().getStringExtra("json");
 
     }
 
     @Override
     public void onBackPressed() {
         Intent myIntent = new Intent(SearchUserActivity.this,MapsActivity.class);
+        if (json != null) {
+            myIntent.putExtra("json", json);
+        }
         SearchUserActivity.this.startActivity(myIntent);
     }
 
