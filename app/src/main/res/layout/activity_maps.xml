@@ -248,7 +248,8 @@ android:layout_height="match_parent">
         android:layout_height="wrap_content"
         android:layout_alignBottom="@id/progressBar"
         android:text="Log"
-        android:textSize="18sp" />
+        android:textSize="18sp"
+        android:visibility="gone" />
 
     <RatingBar
         android:id="@+id/ratingBar"

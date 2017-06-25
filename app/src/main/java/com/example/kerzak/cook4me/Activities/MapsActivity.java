@@ -604,23 +604,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // REMOVE COOK
             else if (msg.arg1 == 1) {
                 String login = (String) msg.obj;
-                if (cookMode && myCookingData != null && myCookingData.getLogin().equals(login)) {
-//                    myCookingData = null;
-//                    if (myMarker != null) myMarker.remove();
-//                    loadEatMode();
-                } else {
-                    Marker toBeRemoved = cooks.get(login);
-//                    loggerView.setText("is marker null:" + (toBeRemoved == null));
-                    if (toBeRemoved != null) {
-//                        loggerView.setText("SELECTED ID = " + selectedMarker.getId() + " TBD ID = " + toBeRemoved.getId());
-                        if (toBeRemoved == selectedMarker) {
-                            selectedMarker = null;
-                            // TODO: info dialog about cooking cancellation
-                        }
-                        toBeRemoved.remove();
-                        if (cooks.containsKey(login)) {
-                            cooks.remove(login);
-                        }
+                Marker toBeRemoved = cooks.get(login);
+                if (toBeRemoved != null) {
+                    if (toBeRemoved == selectedMarker) {
+                        selectedMarker = null;
+                    }
+                    toBeRemoved.remove();
+                    if (cooks.containsKey(login)) {
+                        cooks.remove(login);
                     }
                 }
             }
@@ -847,9 +838,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 }
             });
-        } else {
-//            loggerView.setText("522 cl");
-//            customerLogic();
         }
     }
 
@@ -861,6 +849,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         myMarker=mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(
                 BitmapDescriptorFactory.HUE_GREEN)));
+        myCookingData.setNickname(LoginActivity.nickname);
+        cookingDataMap.put(myMarker, myCookingData);
         markerImage.setVisibility(View.INVISIBLE);
         confirmLocationButton.setVisibility(View.INVISIBLE);
         cookButton = (ImageButton) findViewById(R.id.cookButton);
@@ -996,11 +986,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         refreshSnippet(marker, false);
         marker.showInfoWindow();
-
-        ratingBar.setVisibility(View.VISIBLE);
-        CookingData cookingData = cookingDataMap.get(marker);
-        ratingBar.setRating(cookingData.getRanking());
-
+        if (!marker.equals(myMarker)) {
+            ratingBar.setVisibility(View.VISIBLE);
+            CookingData cookingData = cookingDataMap.get(marker);
+            ratingBar.setRating(cookingData.getRanking());
+        }
         return true;
     }
 
