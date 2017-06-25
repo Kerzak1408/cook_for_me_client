@@ -83,6 +83,12 @@ public class ClientThread extends Thread {
 
                         msg.obj = cookingData;
                         msg.arg1 = 0;
+                        if (splitMsg.length > 2) {
+                            msg.arg2 = Integer.parseInt(splitMsg[2]);
+                        } else {
+                            msg.arg2 = 0;
+                        }
+
 
                     } else if ("remove".equals(splitMsg[0])) {
                         msg.arg1 = 1;

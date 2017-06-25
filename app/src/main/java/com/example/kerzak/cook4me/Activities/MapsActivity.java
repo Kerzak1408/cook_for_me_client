@@ -136,6 +136,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean cookMode = false;
     private boolean registered = false;
 
+    List<Marker> registeredMarkers = new ArrayList<>();
+
     public  boolean isInCookMode() {
         return cookMode;
     }
@@ -144,6 +146,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        getSupportActionBar().setTitle(LoginActivity.nickname);
         cooks = new HashMap<>();
         cookingDataMap = new HashMap<>();
         cookingDataList = new ArrayList<>();
@@ -196,6 +199,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 selectedMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
                                 refreshSnippet(selectedMarker, true);
                                 selectedMarker.showInfoWindow();
+                                registeredMarkers.add(selectedMarker);
                                 selectedMarker = null;
                             }
                             break;
@@ -231,8 +235,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (json != null) {
             switchCookMode();
         } else {
-            clientThread.refresh();
         }
+        clientThread.refresh();
 
         try {
             Thread.currentThread().sleep(1000);
@@ -576,8 +580,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 loggerView.setText("in handler 0");
                 CookingData data = (CookingData) msg.obj;
                 if (!cookMode || myCookingData == null || !data.getLogin().equals(myCookingData.getLogin())) {
-                    Marker newMarker = mMap.addMarker(new MarkerOptions().position(data.getLocation()).icon(BitmapDescriptorFactory.defaultMarker(
-                            BitmapDescriptorFactory.HUE_ORANGE)));
+                    Marker newMarker;
+                    if (msg.arg2 == 0) {
+                        newMarker = mMap.addMarker(new MarkerOptions().position(data.getLocation()).icon(BitmapDescriptorFactory.defaultMarker(
+                                BitmapDescriptorFactory.HUE_ORANGE)));
+                    } else {
+                        newMarker = mMap.addMarker(new MarkerOptions().position(data.getLocation()).icon(BitmapDescriptorFactory.defaultMarker(
+                                BitmapDescriptorFactory.HUE_MAGENTA)));
+                        registeredMarkers.add(newMarker);
+                    }
+
 //                    loggerView.setText("marker added in handler");
                     newMarker.setTitle(data.getName());
 
@@ -641,6 +653,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 cookMode = false;
                 switchCookMode();
                 changeCookingButtonsVisibility(true);
+                if (myMarker != null) {
+                    myMarker.remove();
+                }
                 myMarker = cooks.get(LoginActivity.email);
                 myMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
             }
@@ -839,8 +854,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void loadCookingMode(LatLng myPos) {
-        mMap.clear();
+//        mMap.clear();
         LatLng latLng = myPos;
+        if (myMarker != null) {
+            myMarker.remove();
+        }
         myMarker=mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(
                 BitmapDescriptorFactory.HUE_GREEN)));
         markerImage.setVisibility(View.INVISIBLE);
@@ -964,22 +982,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onMarkerClick(final Marker marker) {
-        if (!cookMode) {
+
+        if (!registeredMarkers.contains(marker) && !marker.equals(myMarker)) {
+            selectedMarker = marker;
             if (selectedMarker != null) {
                 selectedMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
             }
-            selectedMarker = marker;
-            if (!registered) {
-                selectedMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-                registerButton.setVisibility(View.VISIBLE);
-            }
-            refreshSnippet(marker, false);
-            selectedMarker.showInfoWindow();
+
+            selectedMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
             registerButton = (Button) findViewById(R.id.registerButton);
-            ratingBar.setVisibility(View.VISIBLE);
-            CookingData cookingData = cookingDataMap.get(marker);
-            ratingBar.setRating(cookingData.getRanking());
+            registerButton.setVisibility(View.VISIBLE);
         }
+
+        refreshSnippet(marker, false);
+        marker.showInfoWindow();
+
+        ratingBar.setVisibility(View.VISIBLE);
+        CookingData cookingData = cookingDataMap.get(marker);
+        ratingBar.setRating(cookingData.getRanking());
+
         return true;
     }
 
