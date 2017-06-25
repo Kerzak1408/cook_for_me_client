@@ -13,6 +13,7 @@ import java.util.List;
 
 public class CookingData implements Serializable {
     private String login;
+    private String nickname;
     private String name;
     private List<String> categories;
     private int dayFrom;
@@ -33,6 +34,7 @@ public class CookingData implements Serializable {
     private String currency;
     private LatLng location;
     private float ranking;
+
 
     public CookingData(String login, String name, List<String> categories, int dayFrom, int monthFrom, int yearFrom,
                        int hourFrom, int minuteFrom, int dayTo, int monthTo, int yearTo, int hourTo, int minuteTo,
@@ -175,5 +177,13 @@ public class CookingData implements Serializable {
 
     public void setAvailablePortions(int availablePortions) {
         this.availablePortions = availablePortions;
+    }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
     }
 }

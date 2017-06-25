@@ -651,7 +651,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void refreshSnippet(Marker marker, boolean decreasePortions) {
         CookingData data = cookingDataMap.get(marker);
         String details = "";
-        details += "PRICE: " + data.getPrice() + " " + data.getCurrency();
+        details += "COOK: " + data.getNickname();
+        details += "\nPRICE: " + data.getPrice() + " " + data.getCurrency();
         details += "\nFROM: " + data.getHourFrom() + "." + data.getMinuteFrom() + " " +
                 data.getDayFrom() + "-" + data.getMonthFrom() + "-" + data.getYearFrom();
         details += "\nTO: " + data.getHourTo() + "." + data.getMinuteTo() + " " +
