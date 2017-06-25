@@ -42,6 +42,8 @@ public class ClientThread extends Thread {
         if (instance == null) {
             instance = new ClientThread(handler);
             instance.start();
+        } else if (handler != null) {
+            instance.handler = handler;
         }
         return instance;
     }
@@ -137,9 +139,12 @@ public class ClientThread extends Thread {
         writeLine("search#" + pattern);
     }
 
-
     public void requestRanking(String cookName, Handler rankingHandler) {
         this.rankingHandler = rankingHandler;
         writeLine("getRanking#" + cookName);
+    }
+
+    public void refresh() {
+        writeLine("refresh");
     }
 }

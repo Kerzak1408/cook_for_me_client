@@ -155,7 +155,7 @@ public class RankingActivity extends ListActivity {
                     listItems.add(user + " (" + rankings.get(user) + "/5): " + comment);
                 }
             }
-            adapter.notifyDataSetChanged();;
+            adapter.notifyDataSetChanged();
             updateRanking.setVisibility(View.GONE);
         }
     };

@@ -175,8 +175,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         changeCookingButtonsVisibility(false);
         loggerView = (TextView) findViewById(R.id.logger);
 
-
-
         clientThread = ClientThread.getInstance(serverMessageHandler);
 
         registerButton = (Button) findViewById(R.id.registerButton);
@@ -232,6 +230,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         cookMode = false;
         if (json != null) {
             switchCookMode();
+        } else {
+            clientThread.refresh();
         }
 
         try {
@@ -573,7 +573,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //            loggerView.setText("IN serverMessageHandler");
             // ADD COOK
             if (msg.arg1 == 0) {
-
+                loggerView.setText("in handler 0");
                 CookingData data = (CookingData) msg.obj;
                 if (!cookMode || myCookingData == null || !data.getLogin().equals(myCookingData.getLogin())) {
                     Marker newMarker = mMap.addMarker(new MarkerOptions().position(data.getLocation()).icon(BitmapDescriptorFactory.defaultMarker(
@@ -584,7 +584,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     cooks.put(data.getLogin(), newMarker);
                     cookingDataMap.put(newMarker, data);
                     refreshSnippet(newMarker, false);
-
+                    loggerView.setText("new cook placed");
                 }
 
 
