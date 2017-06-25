@@ -198,6 +198,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 selectedMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
                                 refreshSnippet(selectedMarker, true);
                                 selectedMarker.showInfoWindow();
+                                selectedMarker = null;
                             }
                             break;
                         }
@@ -965,7 +966,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (!cookMode) {
             if (selectedMarker != null) {
                 selectedMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
-//                loggerView.setText("onMarkerClick=" + registered);
             }
             selectedMarker = marker;
             if (!registered) {

@@ -4,6 +4,8 @@ import android.app.ListActivity;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -14,6 +16,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.example.kerzak.cook4me.R;
+import com.example.kerzak.cook4me.WebSockets.ClientThread;
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
@@ -27,8 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SearchUserActivity extends ListActivity  {
-
-    private SearchTask mAuthTask = null;
 
     EditText searchUsersEditText;
 
@@ -61,8 +62,12 @@ public class SearchUserActivity extends ListActivity  {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                mAuthTask = new SearchTask(s.toString());
-                mAuthTask.execute();
+                if (s.length() == 0) {
+                    listItems.clear();
+                    adapter.notifyDataSetChanged();;
+                } else {
+                    ClientThread.getInstance(null).search(s.toString(), searchHandler);
+                }
             }
 
             @Override
@@ -88,6 +93,16 @@ public class SearchUserActivity extends ListActivity  {
 
     }
 
+    private Handler searchHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            List<String> results = (List<String>) msg.obj;
+            listItems.clear();
+            listItems.addAll(results);
+            adapter.notifyDataSetChanged();;
+        }
+    };
+
     @Override
     public void onBackPressed() {
         Intent myIntent = new Intent(SearchUserActivity.this,MapsActivity.class);
@@ -98,100 +113,6 @@ public class SearchUserActivity extends ListActivity  {
     }
 
 
-//    private void setUpBackButton() {
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.backToMenuFButton);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Intent myIntent = new Intent(SearchUserActivity.this,MapsActivity.class);
-//                SearchUserActivity.this.startActivity(myIntent);
-//            }
-//        });
-//    }
 
-    public class SearchTask extends AsyncTask<Void, Void, Boolean> {
-
-
-        String server_response;
-        private final String mPattern;
-
-        SearchTask(String pattern) {
-            this.mPattern = pattern;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            URL url;
-            HttpURLConnection urlConnection = null;
-
-            try {
-                url = new URL("http://192.168.179.94:8090/searchusers?pattern=" + mPattern);
-
-                urlConnection = (HttpURLConnection) url.openConnection();
-
-                int responseCode = urlConnection.getResponseCode();
-
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    server_response = readStream(urlConnection.getInputStream());
-                    Log.v("CatalogClient", server_response);
-                }
-
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                return false;
-            }
-
-            return true;
-        }
-
-        private String readStream(InputStream in) {
-            BufferedReader reader = null;
-            StringBuffer response = new StringBuffer();
-            try {
-                reader = new BufferedReader(new InputStreamReader(in));
-                String line = "";
-                while ((line = reader.readLine()) != null) {
-                    response.append(line);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-            return response.toString();
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
-
-            if (success) {
-                Gson gson = new Gson();
-                List<String> result = gson.fromJson(server_response, List.class);
-                listItems.clear();
-                listItems.addAll(result);
-                adapter.notifyDataSetChanged();;
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-            mAuthTask = null;
-        }
-    }
 
 }
