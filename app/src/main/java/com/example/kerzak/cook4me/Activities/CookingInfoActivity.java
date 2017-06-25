@@ -280,6 +280,9 @@ public class CookingInfoActivity extends AppCompatActivity {
                                         Integer.parseInt(portionsCountInput.getText().toString()), takeAway,
                                         Integer.parseInt(priceInput.getText().toString()), notesInput.getText().toString(), currency);
                                 thisCookingData.setLogin(login);
+                                if (previousCookingData != null) {
+                                    CookingInfoActivity.thisCookingData.setAvailablePortions(previousCookingData.getAvailablePortions());
+                                }
                                 Gson gson = GsonTon.getInstance().getGson();
                                 String json = gson.toJson(CookingInfoActivity.thisCookingData );
 

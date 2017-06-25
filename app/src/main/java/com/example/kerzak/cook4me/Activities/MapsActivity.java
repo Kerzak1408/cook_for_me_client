@@ -277,6 +277,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         cookingViewLayout.setVisibility(visibility);
         progressBar.setVisibility(visibility);
         progressTextView.setVisibility(visibility);
+
+        if (myCookingData != null) {
+            progressBar.setMax(myCookingData.getPortions());
+            progressBar.setProgress(myCookingData.getPortions() - myCookingData.getAvailablePortions());
+        }
     }
 
     private void filtersButtonClick() {
@@ -564,9 +569,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myCookingData = deserialized;
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         progressBar.setMax(myCookingData.getPortions());
+        progressBar.setProgress(myCookingData.getPortions() - myCookingData.getAvailablePortions());
         final String completeJSON = gson.toJson(deserialized);
         totalPortions = String.valueOf(myCookingData.getPortions());
-        // TODO Auto-generated method stub
         clientThread.writeLine("cook#" + completeJSON);
     }
 
@@ -649,7 +654,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 cookMode = false;
                 switchCookMode();
                 changeCookingButtonsVisibility(true);
-                progressBar.setProgress(customersCount);
                 myMarker = cooks.get(LoginActivity.email);
                 myMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
             }

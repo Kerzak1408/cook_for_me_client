@@ -172,4 +172,8 @@ public class CookingData implements Serializable {
     public String getTimeToString() {
         return String.format("%02d", hourTo) + ":" + String.format("%02d", minuteTo);
     }
+
+    public void setAvailablePortions(int availablePortions) {
+        this.availablePortions = availablePortions;
+    }
 }
