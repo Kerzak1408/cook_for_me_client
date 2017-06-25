@@ -32,6 +32,7 @@ public class ClientThread extends Thread {
     private Socket socket;
 
     public static ClientThread instance = null;
+    private Handler rankingHandler;
 
     private ClientThread(Handler handler) {
         this.handler = handler;
@@ -63,6 +64,11 @@ public class ClientThread extends Thread {
             while ((line = reader.readLine()) != null) {
                 String[] splitMsg = line.split("#");
                 Message msg = new Message();
+                if ("ranking".equals(splitMsg[0])) {
+                    msg.obj = splitMsg[1];
+                    rankingHandler.sendMessage(msg);
+                    continue;
+                }
                 if ("searchResults".equals(splitMsg[0])) {
                     List<String> results = GsonTon.getInstance().getGson().fromJson(splitMsg[1],List.class);
                     msg.obj = results;
@@ -129,5 +135,11 @@ public class ClientThread extends Thread {
     public void search(String pattern, Handler searchHandler) {
         this.searchHandler = searchHandler;
         writeLine("search#" + pattern);
+    }
+
+
+    public void requestRanking(String cookName, Handler rankingHandler) {
+        this.rankingHandler = rankingHandler;
+        writeLine("getRanking#" + cookName);
     }
 }
